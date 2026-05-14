@@ -1548,6 +1548,7 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
 <script>
 
 
+
 var appuntiData = {};
 /* ══════════════════════════════════════════════════
    CONFIGURAZIONE IMMAGINI
@@ -4263,7 +4264,270 @@ document.addEventListener('DOMContentLoaded',function(){
   loadEmbeddedData();
 });
 
-/* ══ MAP & UI FUNCTIONS ══ */
+/* ══ MAP DATA & UI FUNCTIONS ══ */
+
+const DD = {
+"argentovetta": {
+  "name": "Argentovetta", "origin": "Ispirato al rione Prati",
+  "badge": "<span class=\"badge bs\">Alta Borghesia</span>",
+  "desc": "Il quartiere dei colletti bianchi — avvocati, maghi certificati, funzionari reali. Elegante e discreto.",
+  "stats": [["Pericolosità","Bassa"],["Costo della vita","Molto alto"],["Punto noto","Palazzo di Giustizia"],["Fama","\"O sei qualcuno o paghi per sembrarlo\""]],
+  "luoghi": [
+    {"nome":"Palazzo di Giustizia","tipo":"Istituzione","icon":"⚖","desc":"Sede dei tribunali di Veloria. Avvocati, giudici e funzionari reali si aggirano nei corridoi. Chi ha una causa in corso, qui ci passa la vita."},
+    {"nome":"Studio Valdris & Associati","tipo":"Studio Legale","icon":"📜","desc":"Il più costoso e il più capace della città. Si dice che Valdris conosca personalmente ogni membro del Consiglio del Re. Probabilmente è vero."},
+    {"nome":"Il Grifone Bianco","tipo":"Ristorante","icon":"🍽","desc":"Solo su prenotazione. Solo su referenza. Solo per chi può permetterselo. Il menu cambia ogni settimana e nessuno sa chi cucina."},
+    {"nome":"Ufficio Notarile della Corona","tipo":"Istituzione","icon":"🖋","desc":"Pratiche burocratiche, contratti, certificazioni. La fila è sempre lunga. Le tariffe sono sempre alte. Il funzionario di turno è sempre stanco."}
+  ]
+},
+"sallustine": {
+  "name": "Le Sallustine", "origin": "Ispirato al rione Campo Marzio",
+  "badge": "<span class=\"badge bi\">Accademico</span>",
+  "desc": "Il quartiere degli studiosi e delle biblioteche. Ricercatori dei canyon e teorici dei Guardiani.",
+  "stats": [["Pericolosità","Molto bassa"],["Costo della vita","Medio-alto"],["Punto noto","La Grande Biblioteca delle Spire"],["Fama","\"Le persone più intelligenti della città\""]],
+  "luoghi": [
+    {"nome":"La Grande Biblioteca delle Spire","tipo":"Istituzione Accademica","icon":"📚","desc":"La più grande raccolta di conoscenze di Veloria. Decine di migliaia di testi, mappe dei canyon, teorie sui Guardiani, documenti storici. L'Associazione degli Archivisti la gestisce con meticolosa cura."},
+    {"nome":"Istituto di Ricerca sui Canyon","tipo":"Centro di Ricerca","icon":"🔬","desc":"Dipendenza della Biblioteca. Qui si studiano campioni biologici, minerali e artefatti recuperati dai canyon. L'accesso è limitato ai ricercatori certificati."},
+    {"nome":"Archivio Storico di Veloria","tipo":"Archivio","icon":"🗄","desc":"Documenti pre-fondazione, cronache degli Otto Eroi, atti del regno. Alcune sezioni sono sigillate per ordine del Consiglio del Re. Nessuno spiega perché."},
+    {"nome":"La Lanterna Spenta","tipo":"Caffè","icon":"☕","desc":"Il ritrovo degli studiosi. Si discute, si teorizza, si contraddicono a vicenda in tono educato. Il caffè è mediocre ma nessuno ci va per il caffè."}
+  ]
+},
+"borgonuovo": {
+  "name": "Borgonuovo", "origin": "Ispirato al rione Ludovisi",
+  "badge": "<span class=\"badge bs\">Nouveau Riche</span>",
+  "desc": "Costruito di recente per i mercanti arricchiti. Elegante ma senza storia.",
+  "stats": [["Pericolosità","Molto bassa"],["Costo della vita","Alto"],["Punto noto","Distretto dei Mercanti d'Élite"],["Fama","\"Soldi nuovi, pretese vecchie\""]],
+  "luoghi": [
+    {"nome":"Distretto dei Mercanti d'Élite","tipo":"Area Commerciale","icon":"💎","desc":"Boutique esclusive, uffici commerciali, sale di trattativa. Tutto è progettato per sembrare antico anche se è stato costruito vent'anni fa."},
+    {"nome":"Banca dei Grandi Mercanti","tipo":"Istituzione Finanziaria","icon":"🏦","desc":"Sede centrale dell'istituto finanziario che muove buona parte dell'economia di Silverwind. Neutra formalmente. Influente nella realtà."},
+    {"nome":"Il Palazzo delle Aste","tipo":"Casa d'Aste","icon":"🔨","desc":"Ogni settimana vengono battuti oggetti rari dai canyon, opere d'arte, licenze commerciali. I prezzi sono proibitivi. Il pubblico è esclusivo."},
+    {"nome":"Club dei Collezionisti","tipo":"Club Privato","icon":"🏛","desc":"Solo su referenza di due soci attivi. Si colleziona di tutto — minerali dei canyon, reperti storici, strumenti Solanthi. Nessuno sa esattamente cosa ci sia nelle sale riservate."}
+  ]
+},
+"altocolle": {
+  "name": "Altocolle", "origin": "Ispirato al rione Sallustiano",
+  "badge": "<span class=\"badge bm\">Residenziale Alto</span>",
+  "desc": "Zona residenziale elevata, a ridosso del quartiere nobiliare. Chi ci abita aspira ai palazzi di Altacolonna.",
+  "stats": [["Pericolosità","Bassa"],["Costo della vita","Medio-alto"],["Punto noto","I Giardini Pensili"],["Fama","\"Non abbastanza ricchi per Altacolonna, troppo fieri per ammetterlo\""]],
+  "luoghi": [
+    {"nome":"I Giardini Pensili","tipo":"Spazio Pubblico","icon":"🌿","desc":"Terrazze coltivate che scendono lungo il fianco del colle. Erbe aromatiche, piccoli orti ornamentali, qualche albero da frutto. Una delle poche fonti di verde della città."},
+    {"nome":"Scuola di Arti Arcane","tipo":"Istituzione Educativa","icon":"✨","desc":"Privata e costosa. Insegna a modulare la Risonanza in modo controllato. Accetta solo chi ha la predisposizione — e i genitori con i soldi per pagare."},
+    {"nome":"Terme di Altocolle","tipo":"Struttura Ricreativa","icon":"♨","desc":"Alimentate dall'acqua del Fiume Argentovio. Frequentate dalla borghesia che vuole dimenticare per qualche ora di non essere ancora nobile."},
+    {"nome":"La Farmacia d'Oro","tipo":"Bottega","icon":"⚗","desc":"Rimedi rari, estratti dai canyon, preparazioni di maghi certificati. Efficace. Carissima. Discreta."}
+  ]
+},
+"fumoscuro": {
+  "name": "Fumoscuro", "origin": "Ispirato al rione Castro Pretorio",
+  "badge": "<span class=\"badge bl\">Militare</span>",
+  "desc": "Zona austera e sorvegliata. Sede della Guardia Cittadina e di A.R.C.O., il corpo operativo dell'Associazione degli Avventurieri.",
+  "stats": [["Pericolosità","Bassa — troppa gente armata"],["Costo della vita","Basso"],["Punto noto","Sede di A.R.C.O."],["Fama","\"Non fare domande\""]],
+  "luoghi": [
+    {"nome":"Sede di A.R.C.O.","tipo":"Istituzione","icon":"🛡","desc":"Agenti per la Risoluzione e il Controllo dell'Ordine. Edificio anonimo, sorveglianza costante. Chi entra ha un motivo. Chi esce non parla molto."},
+    {"nome":"Caserma della Guardia Cittadina","tipo":"Istituzione Militare","icon":"⚔","desc":"Malridotta, sottorganica, demoralizzata. La Guardia esiste ancora, ma nessuno sa bene perché visto che A.R.C.O. fa il loro lavoro meglio e più velocemente."},
+    {"nome":"Armeria Reale","tipo":"Deposito","icon":"🗡","desc":"Forniture militari ufficiali. Accessibile solo con autorizzazione. I registri di accesso sono accurati. Qualcuno li studia con attenzione."},
+    {"nome":"Il Chiodo Fisso","tipo":"Taverna","icon":"🍺","desc":"La taverna dei soldati. Niente musica, niente decorazioni, niente domande. Birra buona e porzioni abbondanti. Il gestore è ex-Guardia e non parla del passato."},
+    {"nome":"Accademia dell'Associazione degli Avventurieri","tipo":"Istituzione Educativa","icon":"🎓","desc":"Dove si formano i futuri Avventurieri. Tre esami per entrare ufficialmente: teorico, di competenza e pratico sul campo. L'edificio è sobrio, le aule sono austere, i docenti sono sopravvissuti. I tassi di abbandono non vengono pubblicati."}
+  ]
+},
+"altacolonna": {
+  "name": "Altacolonna", "origin": "Ispirato al rione Colonna",
+  "badge": "<span class=\"badge bp\">Potere Nobiliare</span>",
+  "desc": "Il cuore politico. Palazzi nobiliari, sede del Consiglio del Re. I cittadini entrano solo se invitati.",
+  "stats": [["Pericolosità","Bassa fisicamente, altissima politicamente"],["Costo della vita","Inaccessibile"],["Punto noto","Palazzo del Consiglio"],["Fama","\"Lì si decidono le cose\""]],
+  "luoghi": [
+    {"nome":"Palazzo del Consiglio","tipo":"Istituzione Politica","icon":"👑","desc":"Sede del Consiglio dei Nobili. Riunioni a porte chiuse, decisioni mai annunciate pubblicamente, corridoi dove ogni parola pesa. Il Re Aurelio siede qui quando decide di mostrarsi."},
+    {"nome":"Residenze Nobiliari","tipo":"Zona Privata","icon":"🏰","desc":"Non accessibili al pubblico. I nobili di Silverwind vivono dietro cancelli sorvegliati. Si sa chi ci abita. Non si sa cosa fanno lì dentro."},
+    {"nome":"La Corte dei Sussurri","tipo":"Salon Privato","icon":"🕯","desc":"Un salon dove i nobili si incontrano informalmente. Si dicono che molte decisioni ufficiali vengano prese qui, davanti a un bicchiere di vino, molto prima delle riunioni formali."},
+    {"nome":"Cappella Reale","tipo":"Tempio Privato","icon":"⛪","desc":"Dedicata formalmente alle cinque divinità, frequentata solo dalla famiglia reale e dai nobili. I Custodi della Soglia la considerano una concessione politica più che un atto di fede."}
+  ]
+},
+"tridente": {
+  "name": "Tridente", "origin": "Ispirato al rione Trevi",
+  "badge": "<span class=\"badge bm\">Commercio di Lusso</span>",
+  "desc": "Il cuore commerciale con la Fontana degli Otto, scultura monumentale degli eroi fondatori.",
+  "stats": [["Pericolosità","Media"],["Costo della vita","Alto"],["Punto noto","🏛 La Fontana degli Otto"],["Fama","\"Il posto più bello dove perdere il portafoglio\""]],
+  "luoghi": [
+    {"nome":"La Fontana degli Otto","tipo":"Monumento","icon":"⛲","desc":"Otto statue identiche di dimensioni uguali, come volle Aurelio. Sette con il nome inciso alla base. L'ottava no. Nessuno sa perché. Nessuno lo chiede ad alta voce."},
+    {"nome":"Sede Centrale dell'Associazione degli Avventurieri","tipo":"Istituzione","icon":"🗺","desc":"Il cuore operativo dell'organizzazione più potente della città. Bacheca degli incarichi, uffici di registrazione, sale di briefing. Chi vuole diventare un Avventuriero, da qui deve passare."},
+    {"nome":"Il Gatto d'Oro","tipo":"Locanda di Lusso","icon":"🌟","desc":"Per avventurieri di successo e chi vuole sembrarlo. Camere costose, cibo eccellente, discrezione garantita. Le storie che si sentono qui valgono più del menu."},
+    {"nome":"Emporio delle Meraviglie","tipo":"Negozio Specializzato","icon":"🧪","desc":"Oggetti, materiali e curiosità dai canyon. Cristalli dei Mille Riflessi, legno degli alberi giganti delle Spire Verdi, spezie impossibili. I prezzi fanno male agli occhi."},
+    {"nome":"Galleria dei Ritratti","tipo":"Museo","icon":"🖼","desc":"Museo degli eroi dell'Associazione. Ritratti, oggetti personali, diari di spedizione. Una celebrazione delle morti gloriose travestita da ispirazione."}
+  ]
+},
+"portavento": {
+  "name": "Portavento", "origin": "Ispirato al rione Borgo",
+  "badge": "<span class=\"badge bm\">Zona di Transito</span>",
+  "desc": "Il principale accesso formale dalla Piana di Cenere. Locande, uffici doganali, gente di passaggio. Non l'unico modo di entrare in città — ma il più ufficiale.",
+  "stats": [["Pericolosità","Media"],["Costo della vita","Medio"],["Punto noto","La Grande Porta di Cenere"],["Fama","\"Tutti ci passano. Pochi ci restano\""]],
+  "luoghi": [
+    {"nome":"La Grande Porta di Cenere","tipo":"Infrastruttura","icon":"🚪","desc":"Il principale accesso formale a Silverwind. Alta trenta metri, costruita in pietra degli Spuntoni. Controllata da A.R.C.O. ogni ora del giorno e della notte. Le mura esistono solo attorno alla zona del palazzo — il resto della città è aperto, e chi conosce i vicoli sa che si entra e si esce in molti altri modi."},
+    {"nome":"Ufficio Doganale","tipo":"Istituzione","icon":"📋","desc":"Registrazione di merci, persone e veicoli. La burocrazia è lenta, le tariffe sono care, i funzionari sono sospettosi. Esattamente come deve essere."},
+    {"nome":"Locanda del Viandante","tipo":"Locanda","icon":"🛏","desc":"Economica, sempre piena, mai tranquilla. Ci si dorme in quattro per stanza e ci si sveglia senza portafoglio solo se si è distratti. Buona per una notte, pessima per una settimana."},
+    {"nome":"Scuderia e Rimessa Velieri","tipo":"Servizio","icon":"⚙","desc":"Noleggio, riparazione e deposito di Velieri di Cenere e animali da trasporto. Il meccanico capo conosce ogni modello di nave a pale mai costruita."},
+    {"nome":"Succursale dell'Associazione degli Avventurieri — Accoglienza","tipo":"Istituzione","icon":"📌","desc":"Il primo punto di contatto per chi arriva a Silverwind con intenzioni avventurose. Informazioni, registrazioni preliminari, avvertimenti che nessuno ascolta."}
+  ]
+},
+"montechiaro": {
+  "name": "Montechiaro", "origin": "Ispirato al rione Ponte",
+  "badge": "<span class=\"badge bs\">Artistico</span>",
+  "desc": "Il quartiere preferito di artisti, bardi e avventurieri fuori servizio.",
+  "stats": [["Pericolosità","Bassa"],["Costo della vita","Medio-basso"],["Punto noto","Piazza della Lucerna"],["Fama","\"Se non sai cosa fare, vai qui\""]],
+  "luoghi": [
+    {"nome":"Piazza della Lucerna","tipo":"Spazio Pubblico","icon":"🕯","desc":"La piazza principale del quartiere. Di giorno mercatino di artigiani, di notte musicisti e narratori. Il nome viene da un lampione antico che non si è mai spento da quando è stato acceso."},
+    {"nome":"Teatro dell'Arco","tipo":"Teatro","icon":"🎭","desc":"Spettacoli, recite, concerti. Alcune sere si mettono in scena storie degli Otto Eroi, con dettagli che gli storici ufficiali non approverebbero."},
+    {"nome":"Bottega del Liutaio Grev","tipo":"Artigianato","icon":"🎵","desc":"Strumenti musicali costruiti con legno delle Spire Verdi. Il suono è inimitabile. I tempi di attesa sono di mesi. Grev non accetta ordini che non gli interessano."},
+    {"nome":"La Testa di Drago","tipo":"Taverna","icon":"🍺","desc":"Musica dal vivo ogni sera. Bardi di passaggio, avventurieri che raccontano storie esagerate, qualche studioso che beve più del previsto. Il posto migliore per sentire cose interessanti."},
+    {"nome":"Galleria Artigiana","tipo":"Galleria","icon":"🎨","desc":"Arte ispirata ai canyon — dipinti, sculture, tessuti. I migliori artisti della città espongono qui. Alcuni pezzi vengono acquistati dai nobili senza mai essere visti di persona."}
+  ]
+},
+"viadelleco": {
+  "name": "Via dell'Eco", "origin": "Ispirato al rione Parione",
+  "badge": "<span class=\"badge bs\">Culturale</span>",
+  "desc": "Vicoli stretti che amplificano ogni suono. Teatro, musica di strada, bardi e giocolieri di ogni tipo.",
+  "stats": [["Pericolosità","Bassa"],["Costo della vita","Medio"],["Punto noto","Il Teatro dell'Eco"],["Fama","\"Si sente tutto. Anche quello che non dovresti\""]],
+  "luoghi": [
+    {"nome":"Il Teatro dell'Eco","tipo":"Teatro","icon":"🎭","desc":"La sua architettura fa sì che anche un sussurro sul palco arrivi chiaramente all'ultimo posto. Si dice che alcune rappresentazioni abbiano rivelato cose che nessuno voleva rendere pubbliche."},
+    {"nome":"Scuola di Musica Popolare","tipo":"Istituzione Educativa","icon":"🎼","desc":"Insegna canto, strumenti, teoria musicale. Aperta a tutti, costi accessibili. Molti bardi famosi ci sono passati."},
+    {"nome":"Il Riflesso","tipo":"Taverna","icon":"🍷","desc":"Paradossalmente silenziosa, nonostante il quartiere. Pareti spesse, soffitti bassi. Si viene qui per parlare senza essere sentiti. Nessuno fa domande sul perché."},
+    {"nome":"Bottega del Copista","tipo":"Bottega","icon":"📝","desc":"Mappe, documenti, testi rari riprodotti a mano. Il copista è discreto, veloce, e dimentica immediatamente quello che ha copiato. Per questo è ancora vivo."}
+  ]
+},
+"vicolo": {
+  "name": "Vicolo Storto", "origin": "Ispirato al rione Pigna",
+  "badge": "<span class=\"badge bd\">Pericoloso</span>",
+  "desc": "Un labirinto di vicoletti. Attività di ogni tipo — alcune decisamente al limite della legalità.",
+  "stats": [["Pericolosità","Alta"],["Costo della vita","Molto basso"],["Punto noto","La Taverna del Cane Lercio"],["Fama","\"Ci entri per un motivo preciso\""]],
+  "luoghi": [
+    {"nome":"La Taverna del Cane Lercio","tipo":"Taverna","icon":"🐱","desc":"In superficie: una taverna rumorosa con vino economico e cibo accettabile. Frequentata da gente di ogni tipo. Il gestore non ricorda mai i volti dei clienti abituali."},
+    {"nome":"Il Mercato Grigio","tipo":"Mercato","icon":"🌑","desc":"Non ha un indirizzo fisso. Si sa dove trovarlo se si sa dove guardare. Oggetti di dubbia provenienza, informazioni, favori. Niente domande sulla provenienza."},
+    {"nome":"Erboristeria di Madame Voss","tipo":"Bottega","icon":"🌿","desc":"Rimedi non ufficiali, preparazioni che i medici certificati non venderebbero. Madame Voss non chiede perché hai bisogno di quello che chiedi. Questo è il suo valore principale."},
+    {"nome":"Il Buco","tipo":"Locanda","icon":"🕳","desc":"Nessun cartello, nessun nome sulla porta. Si entra, si paga, si dorme. Nessuno vuole sapere il tuo nome e tu non vuoi sapere quello degli altri."}
+  ]
+},
+"esquarta": {
+  "name": "Esquarta", "origin": "Ispirato al rione Esquilino",
+  "badge": "<span class=\"badge bm\">Multirazziale</span>",
+  "desc": "Il quartiere più eterogeneo. Mercati etnici, botteghe esotiche, tensioni occasionali.",
+  "stats": [["Pericolosità","Media"],["Costo della vita","Medio"],["Punto noto","Il Grande Mercato delle Razze"],["Fama","\"Se cerchi qualcosa di strano, è lì\""]],
+  "luoghi": [
+    {"nome":"Il Grande Mercato delle Razze","tipo":"Mercato","icon":"🛒","desc":"Bancarelle di ogni razza e provenienza. Cibo orchesco, tessuti elfi, minerali nanici, erbe silvane. Il posto più caotico e colorato di Silverwind. Tieniti il portafoglio."},
+    {"nome":"Tempio di Aetharn","tipo":"Tempio","icon":"☀","desc":"Il più frequentato della città. Gestito dai Custodi della Soglia, aperto a tutte le razze. Si viene qui soprattutto all'alba e al tramonto — i momenti del Respiro."},
+    {"nome":"La Locanda del Gatto Randagio","tipo":"Locanda","icon":"🐈","desc":"Una locanda di medie dimensioni nel cuore di Esquarta. Clientela mista, prezzi onesti, cucina decente. Il gatto del locale — grigio, spelacchiato — sembra conoscere tutti i clienti abituali."},
+    {"nome":"Bottega dei Rimedi Orcheschi","tipo":"Bottega Medica","icon":"💊","desc":"Medicina non convenzionale basata sulle tradizioni tribali orchesche. Efficace per traumi fisici. Decisamente non raccomandata dai medici ufficiali, che la frequentano di nascosto."},
+    {"nome":"La Pentola Comune","tipo":"Osteria","icon":"🍲","desc":"Cucina multietnica, prezzi bassi, tavoli sempre pieni. Si mangia con sconosciuti e si va via con qualcosa di interessante da raccontare."},
+    {"nome":"Succursale di A.R.C.O.","tipo":"Forze dell'Ordine","icon":"🛡","desc":"Presidio operativo di A.R.C.O. nel quartiere più eterogeneo della città. Gestisce l'ordine pubblico in una zona dove convivono molte razze e culture diverse. Interviene rapidamente, fa poche domande in più lingue."}
+  ]
+},
+"piazzalunga": {
+  "name": "Piazzalunga", "origin": "Ispirato al rione S.Eustachio",
+  "badge": "<span class=\"badge bm\">Mercatino</span>",
+  "desc": "Zona di piccole piazze e mercatini coperti. Spezie, stoffe, oggetti curiosi a prezzi onesti.",
+  "stats": [["Pericolosità","Bassa"],["Costo della vita","Medio-basso"],["Punto noto","I Mercatini Coperti"],["Fama","\"Trovi tutto quello che non sapevi di cercare\""]],
+  "luoghi": [
+    {"nome":"I Mercatini Coperti","tipo":"Mercato","icon":"🏪","desc":"Una rete di gallerie coperte con bancarelle fisse. Spezie, stoffe, oggetti curiosi, prodotti artigianali. Prezzi contrattabili, venditori chiacchieroni."},
+    {"nome":"Spezieria dell'Oriente","tipo":"Bottega","icon":"🌶","desc":"Ingredienti esotici — alcuni dai canyon, altri arrivati con le carovane. L'odore si sente da tre vicoli di distanza. Il proprietario conosce l'uso medicinale di ogni cosa che vende."},
+    {"nome":"Bottega del Rigattiere","tipo":"Bottega","icon":"🔍","desc":"Compra e vende di tutto. Oggetti usati, trovati, dimenticati. Si dice che ogni tanto spunti qualcosa dai canyon senza etichetta di provenienza. Il rigattiere non fa domande."},
+    {"nome":"Locanda delle Due Lune","tipo":"Locanda","icon":"🌙","desc":"Piccola, pulita, onesta. Dieci camere, colazione inclusa, nessuna sorpresa. Il tipo di posto che si consiglia agli amici e che si tiene segreto agli sconosciuti."}
+  ]
+},
+"quartomonti": {
+  "name": "Quartomonti", "origin": "Ispirato al rione Monti",
+  "badge": "<span class=\"badge bs\">Popolare</span>",
+  "desc": "Il rione più antico. Vicoli storici, osterie rumorose, gente che vive qui da generazioni.",
+  "stats": [["Pericolosità","Media"],["Costo della vita","Basso"],["Punto noto","Le Osterie dei Monti"],["Fama","\"La vera Silverwind\""]],
+  "luoghi": [
+    {"nome":"Le Osterie dei Monti","tipo":"Osteria","icon":"🍻","desc":"Non una singola osteria — un insieme di locali storici concentrati in poche strade. Ogni famiglia del quartiere ha il suo. Si discute di politica, si gioca a dadi, si litiga e ci si riconcilia."},
+    {"nome":"Il Martello e l'Incudine","tipo":"Artigianato","icon":"🔨","desc":"Fabbro di fiducia del quartiere da tre generazioni. Attrezzi, armi semplici, riparazioni. Il figlio ha imparato il mestiere dal padre che lo ha imparato dal nonno."},
+    {"nome":"Succursale dell'Associazione degli Avventurieri","tipo":"Istituzione","icon":"📌","desc":"La sede meno formale dell'Associazione. Senza marmo nei corridoi. L'agente di turno beve con i clienti e usa il dialetto del quartiere. Funziona meglio di quanto sembri."},
+    {"nome":"Mercato Mattutino","tipo":"Mercato","icon":"🌅","desc":"Aperto all'alba, chiuso a metà mattina. Cibo fresco, prodotti delle serre di Ripa Scura e degli orti di Campovecchio e Fondovalle. Il posto più onesto per fare la spesa."}
+  ]
+},
+"ripa": {
+  "name": "Ripa Scura", "origin": "Ispirato al rione Trastevere",
+  "badge": "<span class=\"badge bm\">Operaio</span>",
+  "desc": "Zona industriale oltre il fiume. Fabbri, meccanici, gente schietta. Birra buona.",
+  "stats": [["Pericolosità","Media"],["Costo della vita","Basso"],["Punto noto","I Cantieri Interni"],["Fama","\"Gente vera. Un po' troppo reale\""]],
+  "luoghi": [
+    {"nome":"I Cantieri Interni","tipo":"Industria","icon":"⚙","desc":"La principale officina per la costruzione e manutenzione dei Velieri di Cenere. Rumorosa, polverosa, sempre attiva. L'Associazione ha un contratto esclusivo di fornitura."},
+    {"nome":"Officina Meccanica Runaforge","tipo":"Artigianato Specializzato","icon":"🔧","desc":"Riparazioni e modifiche su macchinari complessi. Il capo officina sostiene di avere capito come funzionano alcuni componenti Solanthi. Forse esagera. Forse no."},
+    {"nome":"Il Porto Interno","tipo":"Infrastruttura","icon":"⚓","desc":"Attracco sul Fiume Argentovio per le navi a pale che operano dentro la città. Meno glamour del porto esterno, molto più traffico reale."},
+    {"nome":"La Bettola del Fabbro","tipo":"Taverna","icon":"🍺","desc":"Birra buona, niente altro. Niente musica, niente cibo elaborato, niente turisti. I meccanici e i fabbri del quartiere vengono qui dopo il turno. Non si parla molto. Non ce n'è bisogno."},
+    {"nome":"Serre Meccaniche","tipo":"Produzione Alimentare","icon":"🌱","desc":"Alimentate dai generatori meccanici del cantiere. Producono verdure e funghi tutto l'anno. Strategicamente importanti per l'autonomia alimentare della città. Sorvegliate."}
+  ]
+},
+"fondovalle": {
+  "name": "Fondovalle", "origin": "Ispirato al rione Regola",
+  "badge": "<span class=\"badge bm\">Artigianale</span>",
+  "desc": "Zona bassa a ridosso del fiume. Conciatori, tintori, artigiani. Odori forti, prezzi bassi.",
+  "stats": [["Pericolosità","Media"],["Costo della vita","Basso"],["Punto noto","Le Concerie del Fiume"],["Fama","\"Non ci vai per il profumo\""]],
+  "luoghi": [
+    {"nome":"Le Concerie del Fiume","tipo":"Industria","icon":"🏭","desc":"Pelli, cuoio, cucitura. L'odore è orribile. Il cuoio prodotto qui finisce nelle armature degli Avventurieri e nelle selle dei Velieri. Artigianato di qualità in condizioni brutali."},
+    {"nome":"Coltivazioni Idroponiche","tipo":"Produzione Alimentare","icon":"🌾","desc":"Lungo le rive dell'Argentovio, sistemi di coltivazione che sfruttano l'acqua del fiume e tecnologie di origine incerta. Producono grano, legumi e ortaggi. Fondamentali per la città."},
+    {"nome":"Distilleria Argentovio","tipo":"Produzione","icon":"🍶","desc":"Liquori artigianali prodotti con acqua del fiume e ingredienti locali. Il prodotto più famoso è l'Acquaverde — un distillato dalle Spire Verdi con un colore inquietante e un effetto immediato."},
+    {"nome":"Magazzini del Fiume","tipo":"Deposito","icon":"📦","desc":"Deposito merci lungo il fiume. Transito di materiali da e per i quartieri produttivi. Alcune stive sono affittate a privati. Cosa contengano non è sempre chiaro."}
+  ]
+},
+"campovecchio": {
+  "name": "Campovecchio", "origin": "Ispirato al rione Campitelli",
+  "badge": "<span class=\"badge bi\">Storico</span>",
+  "desc": "Il quartiere più antico, pieno di rovine e memorie della città originale.",
+  "stats": [["Pericolosità","Bassa-media"],["Costo della vita","Variabile"],["Punto noto","Le Rovine del Primo Insediamento"],["Fama","\"Qui c'era già qualcosa prima di Silverwind\""]],
+  "luoghi": [
+    {"nome":"Le Rovine del Primo Insediamento","tipo":"Sito Storico","icon":"🏛","desc":"Resti dell'insediamento originale, precedente alla fondazione della città. Gli Archivisti studiano le strutture da decenni. Alcune sezioni sono ancora inesplorate perché instabili."},
+    {"nome":"Museo della Fondazione","tipo":"Museo","icon":"🗿","desc":"Tre secoli di storia di Silverwind in un edificio sobrio. Oggetti degli Otto Eroi, documenti originali del regno, mappe dei canyon dell'epoca. La sezione sui cinque regni sconfitti è stranamente scarna."},
+    {"nome":"Studio dell'Antiquario Meld","tipo":"Bottega","icon":"🔮","desc":"Compra, studia e vende oggetti antichi. Meld è vecchio, burbero e brillante. Non vende a chiunque — vuole sapere perché vuoi quello che vuoi. Se la risposta non lo convince, non tratti."},
+    {"nome":"Orti Urbani di Campovecchio","tipo":"Produzione Alimentare","icon":"🥬","desc":"Nelle aree delle rovine meno instabili, il terreno è fertile per ragioni che nessuno ha ancora spiegato. Orti gestiti dalle famiglie del quartiere. Producono più di quanto dovrebbero."},
+    {"nome":"Tempio di Mivorn","tipo":"Tempio","icon":"🌿","desc":"Piccolo, quasi abbandonato, seminascosto tra le rovine. Uno dei templi più antichi della città. I Custodi della Soglia lo mantengono per rispetto, non per frequentazione."}
+  ]
+},
+"roccavecchia": {
+  "name": "Rocca Vecchia", "origin": "Ispirato al rione S.Angelo",
+  "badge": "<span class=\"badge bi\">Storico</span>",
+  "desc": "Zona alta su un piccolo colle con resti antichi. Pochi abitanti, molto mistero, qualche tempio dimenticato.",
+  "stats": [["Pericolosità","Bassa"],["Costo della vita","Basso"],["Punto noto","La Rocca Diruta"],["Fama","\"Ci vanno solo gli storici e i disperati\""]],
+  "luoghi": [
+    {"nome":"La Rocca Diruta","tipo":"Sito Storico","icon":"🏰","desc":"Resti di una fortezza precedente alla fondazione. Le mura ancora in piedi sono più spesse di quanto necessario. Gli Archivisti hanno trovato iscrizioni in Pietruna che non sono ancora riusciti a tradurre completamente."},
+    {"nome":"Sede dei Custodi della Soglia","tipo":"Tempio Principale","icon":"⛩","desc":"Il complesso templare principale delle cinque divinità. Sobrio, austero, antico. I Custodi gestiscono da qui i riti di tutta la città. L'archivio interno non è accessibile al pubblico."},
+    {"nome":"Tempio di Suveth","tipo":"Tempio","icon":"🕯","desc":"Il più silenzioso della città. Nessuna musica, nessun canto, nessun ornamento. Una stanza, una fiamma, silenzio. Si viene qui quando qualcuno non torna dalla Piana."},
+    {"nome":"Archivio dei Custodi","tipo":"Archivio Riservato","icon":"📖","desc":"Non accessibile al pubblico. Si dice contenga registri di ogni Sfiorato documentato negli ultimi trecento anni, trascrizioni della Voce dei Guardiani e corrispondenza con la Corona che nessun altro ha mai letto."}
+  ]
+},
+"pietragrossa": {
+  "name": "Pietragrossa", "origin": "Ispirato al rione Testaccio",
+  "badge": "<span class=\"badge bm\">Mercato Popolare</span>",
+  "desc": "Il mercato centrale per bestiame e merci. Odori forti, voci alte, prezzi contrattati.",
+  "stats": [["Pericolosità","Bassa-media"],["Costo della vita","Basso"],["Punto noto","Il Mercato della Pietra"],["Fama","\"Buon cibo, prezzi onesti\""]],
+  "luoghi": [
+    {"nome":"Il Mercato della Pietra","tipo":"Mercato","icon":"🥩","desc":"Il mercato alimentare centrale di Silverwind. Carne, pesce del fiume, cereali, verdure. I prezzi sono i più onesti della città. Le discussioni tra venditori e compratori sono leggendarie."},
+    {"nome":"Macelleria e Salumeria Gorvan","tipo":"Bottega Alimentare","icon":"🍖","desc":"La migliore della città per qualità e varietà. Gorvan lavora dall'alba e finisce quando finisce la merce. La fila fuori è un indicatore di qualità."},
+    {"nome":"Locanda del Manzo Grasso","tipo":"Locanda","icon":"🍽","desc":"Economica, rumorosa, sempre piena. Cucina abbondante, letti stretti, compagnia assortita. Perfetta per chi ha pochi soldi e non vuole stare da solo."},
+    {"nome":"Deposito dell'Associazione","tipo":"Deposito","icon":"🎒","desc":"Equipaggiamento standard per spedizioni nei canyon. Corde, torce, provviste, kit medici. Prezzi regolamentati dall'Associazione. Nessuno sconto, nessuna eccezione."}
+  ]
+},
+"celio": {
+  "name": "Celio Alto", "origin": "Ispirato al rione Celio",
+  "badge": "<span class=\"badge bs\">Residenziale</span>",
+  "desc": "Il quartiere tranquillo. Famiglie borghesi, strade pulite. Non succede mai niente.",
+  "stats": [["Pericolosità","Molto bassa"],["Costo della vita","Medio"],["Punto noto","Il Tempio di Pietra Grigia"],["Fama","\"Non c'è mai niente da fare. È meraviglioso\""]],
+  "luoghi": [
+    {"nome":"Tempio di Pietra Grigia","tipo":"Tempio","icon":"🌤","desc":"Dedicato ad Aetharn, il Respiro. Costruito in pietra grigia degli Spuntoni. Le cerimonie all'alba e al tramonto sono aperte a tutti. Frequentatissimo dalle famiglie del quartiere."},
+    {"nome":"Orfanotrofio di Celio","tipo":"Istituzione","icon":"🏠","desc":"Gestito dai Custodi della Soglia. Accoglie bambini rimasti soli — spesso figli di avventurieri non tornati dai canyon. Pulito, ben tenuto, triste."},
+    {"nome":"La Farmacia del Quartiere","tipo":"Bottega Medica","icon":"💊","desc":"Rimedi comuni, bende, medicamenti di base. Il farmacista conosce tutti per nome. Non vende mai più di quello che serve."},
+    {"nome":"Giardino Pubblico","tipo":"Spazio Pubblico","icon":"🌳","desc":"L'unico vero giardino pubblico di Silverwind. Mantenuto dalla comunità del quartiere. Panchine, alberi, qualche aiuola. I bambini ci giocano, i vecchi ci siedono, tutti ci vanno quando hanno bisogno di silenzio."}
+  ]
+},
+"ripalunga": {
+  "name": "Ripalunga", "origin": "Ispirato al rione Ripa",
+  "badge": "<span class=\"badge bd\">Pericoloso</span>",
+  "desc": "Il vecchio quartiere portuale. Magazzini abbandonati, contrabbandieri, poche domande.",
+  "stats": [["Pericolosità","Alta"],["Costo della vita","Molto basso"],["Punto noto","I Vecchi Magazzini del Porto"],["Fama","\"Quello che arriva qui non viene dichiarato\""]],
+  "luoghi": [
+    {"nome":"I Vecchi Magazzini del Porto","tipo":"Struttura","icon":"🏭","desc":"Costruiti tre secoli fa quando Silverwind aveva un porto attivo. Ora formalmente abbandonati. In realtà frequentati. Le chiavi originali sono state perse. Le serrature nuove non le ha messe il Comune."},
+    {"nome":"Le Banchine Abbandonate","tipo":"Infrastruttura","icon":"⚓","desc":"Attracco illegale sul fiume. Di notte ci attraccano imbarcazioni che non vogliono passare per il porto interno. A.R.C.O. sa. Non interviene. Qualcuno si chiede perché."},
+    {"nome":"Il Nodo","tipo":"Taverna","icon":"🪢","desc":"Una taverna di contrabbandieri che non sembra una taverna di contrabbandieri. Cibo mediocre, clientela silenziosa, gestore che non ricorda nulla. Il nome sulla porta è diverso ogni settimana."}
+  ]
+}
+};
+
 function show(id,btn){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
@@ -4409,6 +4673,8 @@ mapbox.addEventListener('wheel', e => {
 window.addEventListener('load', initMap);
 
 
+/* ══ MISSING BLOCKS ══ */
+
   function toggleSintesi(i) {
     var el = document.getElementById("sintesi" + i);
     var isOpen = el.classList.contains("open");
@@ -4416,6 +4682,7 @@ window.addEventListener('load', initMap);
     if (!isOpen) el.classList.add("open");
   }
   
+
 
   function toggleRegno(i) {
     var el = document.getElementById("regno" + i);
@@ -4425,15 +4692,15 @@ window.addEventListener('load', initMap);
   }
   
 
+
   function toggleFac(i) {
     var el = document.getElementById("fac" + i);
     var isOpen = el.classList.contains("open");
     document.querySelectorAll(".fac.open").forEach(function(f){ f.classList.remove("open"); });
     if (!isOpen) el.classList.add("open");
   }
+  
 
-
-/* ══ EROI ══ */
 
 (function(){
   var H = [{"id": "aurelio", "name": "Aurelio Ottavio Gladius", "cls": "Elfo · Spadaccino · Il Re", "icon": "👑", "img": "eroe_aurelio.jpg", "desc": "Aurelio Ottavio Gladius è l'unico degli eroi ancora in vita — o almeno, ancora sul trono. Un elfo dalla presenza silenziosa e misurata, che trecento anni fa non era un re ma un avventuriero come tanti, con una spada al fianco e un'idea fissa in testa: che Silverwind meritasse qualcuno che combattesse per lei invece di sopra di lei. Lo fece. E rimase. Nella Fontana degli Otto la sua statua è uguale alle altre — stessa dimensione, stessa cura — perché lui volle così. Per Aurelio i suoi sette compagni non erano subordinati né seguaci: erano uguali, e quella parola la prendeva sul serio. Chi lo ha visto di persona dice che somiglia ancora alla statua in modo inquietante. Negli ultimi anni qualcosa in lui sembra cambiato. La gente ne parla sottovoce, senza prove, senza certezze."}, {"id": "elarion", "name": "Elarion l'Oscuro", "cls": "Elfo · Poteri Oscuri", "icon": "🌑", "img": "eroe_elarion.jpg", "desc": "Di Elarion l'Oscuro si sa poco, e quello che si sa spaventa. Era un elfo — ma di quale stirpe, da dove venisse, non lo sa nessuno. Si racconta che durante la battaglia decisiva, il sole sparì. Non tramontò — sparì, per ore, su tutto Veloria. Quando tornò, l'esercito nemico aveva deposto le armi senza che nessuno li avesse toccati. I suoi poteri erano oscuri nel senso più letterale — incomprensibili, spaventosi, qualcosa che la magia non riesce a spiegare ancora oggi. La sua statua è l'unica che i bambini evitano di toccare. Nessuno gliel'ha mai detto di farlo. Lo fanno e basta."}, {"id": "aldren", "name": "Aldren Mano del Cielo", "cls": "Elfo · Arciere", "icon": "🏹", "img": "eroe_aldren.jpg", "desc": "Aldren Mano del Cielo era la guardia del corpo di Aurelio. Un elfo alto e silenzioso, con un arco e un coltello e nient'altro, capace di tenere testa da solo a intere formazioni nemiche. Si racconta che durante la campagna contro Valmera, un Tarrasque fu liberato come arma disperata. Aldren prese una freccia. Una sola. E trapassò la creatura da parte a parte. Un Tarrasque non si uccide così, lo sanno tutti, eppure si dice che non si rialzò fino alla fine della battaglia. Finché Aldren era in piedi, Aurelio non veniva toccato."}, {"id": "malavreth", "name": "Malavreth Cinderfall", "cls": "Tiefling · Stregona", "icon": "🔥", "img": "eroe_malavreth.jpg", "desc": "Malavreth Cinderfall era una Tiefling dalla pelle color cenere e gli occhi color brace. Stregona di potere raro, aveva un modo di fare la guerra che i contemporanei descrivevano come elegante. Non distruggeva eserciti, li disfaceva. Un incantesimo qui, una maledizione lì, e nel giro di ore le catene di comando nemiche collassavano. Si dice che durante la campagna contro il Ducato di Ossenval fu l'unica in grado di contrastare le loro pratiche innaturali. La sua statua è l'unica che sorride leggermente — e a seconda dell'ora del giorno, quel sorriso sembra diverso."}, {"id": "durgin", "name": "Durgin Runaforge", "cls": "Nano · Inventore", "icon": "⚙", "img": "eroe_durgin.jpg", "desc": "Durgin Runaforge costruiva cose che non assomigliavano a niente che un nano avesse mai costruito. Le sue macchine erano incomprensibili anche per gli ingegneri più brillanti, e lo sono ancora oggi. Si dice che durante l'assedio di Selvorn costruì in una notte un marchingegno che abbatté le mura nemiche — e poi lo smontò senza spiegare nulla. Le sue note sono conservate nella Grande Biblioteca delle Sallustine, dove studiosi ci lavorano da decenni senza riuscire a decifrarne più di una piccola parte."}, {"id": "sierra", "name": "Sierra Luce Bianca", "cls": "Umana · Chierica", "icon": "✨", "img": "eroe_sierra.jpg", "desc": "Sierra Luce Bianca era quella che meno cercava di sembrare straordinaria — ed era forse la più essenziale di tutti. Chierica di fede profonda e mani sicure, si dice che in tutta la campagna non perse nessuno dei compagni, nemmeno nei momenti impossibili. Si racconta che riportò Durgin in sé dopo tre giorni di delirio da veleno dichiarato letale, e che tenne in vita Groth con una mano sul petto per un'intera notte. La sua statua guarda verso il basso, come se stesse ancora pregando."}, {"id": "groth", "name": "Groth", "cls": "Orco · Barbaro", "icon": "⚔", "img": "immagini/eroe_groth.jpg", "desc": "Groth era un orco, e chi lo descriveva usava parole come \"valanga\" e \"catastrofe\" — e intendeva dei complimenti. Sul campo di battaglia era qualcosa oltre la forza fisica: si racconta che i Guardiani dei canyon lo avessero benedetto, che qualcosa di antico abitasse in lui durante il combattimento. Gli occhi diventavano diversi. La voce cambiava. I nemici che lo fronteggiavano raramente lo fronteggiavano una seconda volta. La sua statua sembra più grande delle altre — non lo è, ma così appare. Forse è la postura. Forse è qualcos'altro."}, {"id": "ottavo", "name": "???", "cls": "Sconosciuto", "icon": "?", "img": "eroe_ottavo.jpg", "desc": "L'ottava statua nella Fontana degli Otto non ha nome. Non ha volto. La pietra è liscia dove gli altri hanno lineamenti, vuota dove gli altri hanno espressioni. Non compare in nessuna cronaca ufficiale. Nessuno sa chi fosse, cosa facesse, perché sia lì. Eppure qualcuno la mise. E qualcuno, evidentemente, non vuole che si sappia chi era."}];
@@ -4568,7 +4835,6 @@ window.addEventListener('load', initMap);
 })();
   
 
-/* ══ DIVINITÀ ══ */
 
 (function(){
   var D=[
@@ -4634,7 +4900,6 @@ window.addEventListener('load', initMap);
   if(document.readyState==="complete"){requestAnimationFrame(initDW);}else{window.addEventListener("load",function(){requestAnimationFrame(initDW);});}
 })();
   
-
 </script>
 
 <script id="pdataContainer" type="application/json"></script>
