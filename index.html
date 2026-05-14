@@ -4432,6 +4432,209 @@ window.addEventListener('load', initMap);
     if (!isOpen) el.classList.add("open");
   }
 
+
+/* ══ EROI ══ */
+
+(function(){
+  var H = [{"id": "aurelio", "name": "Aurelio Ottavio Gladius", "cls": "Elfo · Spadaccino · Il Re", "icon": "👑", "img": "eroe_aurelio.jpg", "desc": "Aurelio Ottavio Gladius è l'unico degli eroi ancora in vita — o almeno, ancora sul trono. Un elfo dalla presenza silenziosa e misurata, che trecento anni fa non era un re ma un avventuriero come tanti, con una spada al fianco e un'idea fissa in testa: che Silverwind meritasse qualcuno che combattesse per lei invece di sopra di lei. Lo fece. E rimase. Nella Fontana degli Otto la sua statua è uguale alle altre — stessa dimensione, stessa cura — perché lui volle così. Per Aurelio i suoi sette compagni non erano subordinati né seguaci: erano uguali, e quella parola la prendeva sul serio. Chi lo ha visto di persona dice che somiglia ancora alla statua in modo inquietante. Negli ultimi anni qualcosa in lui sembra cambiato. La gente ne parla sottovoce, senza prove, senza certezze."}, {"id": "elarion", "name": "Elarion l'Oscuro", "cls": "Elfo · Poteri Oscuri", "icon": "🌑", "img": "eroe_elarion.jpg", "desc": "Di Elarion l'Oscuro si sa poco, e quello che si sa spaventa. Era un elfo — ma di quale stirpe, da dove venisse, non lo sa nessuno. Si racconta che durante la battaglia decisiva, il sole sparì. Non tramontò — sparì, per ore, su tutto Veloria. Quando tornò, l'esercito nemico aveva deposto le armi senza che nessuno li avesse toccati. I suoi poteri erano oscuri nel senso più letterale — incomprensibili, spaventosi, qualcosa che la magia non riesce a spiegare ancora oggi. La sua statua è l'unica che i bambini evitano di toccare. Nessuno gliel'ha mai detto di farlo. Lo fanno e basta."}, {"id": "aldren", "name": "Aldren Mano del Cielo", "cls": "Elfo · Arciere", "icon": "🏹", "img": "eroe_aldren.jpg", "desc": "Aldren Mano del Cielo era la guardia del corpo di Aurelio. Un elfo alto e silenzioso, con un arco e un coltello e nient'altro, capace di tenere testa da solo a intere formazioni nemiche. Si racconta che durante la campagna contro Valmera, un Tarrasque fu liberato come arma disperata. Aldren prese una freccia. Una sola. E trapassò la creatura da parte a parte. Un Tarrasque non si uccide così, lo sanno tutti, eppure si dice che non si rialzò fino alla fine della battaglia. Finché Aldren era in piedi, Aurelio non veniva toccato."}, {"id": "malavreth", "name": "Malavreth Cinderfall", "cls": "Tiefling · Stregona", "icon": "🔥", "img": "eroe_malavreth.jpg", "desc": "Malavreth Cinderfall era una Tiefling dalla pelle color cenere e gli occhi color brace. Stregona di potere raro, aveva un modo di fare la guerra che i contemporanei descrivevano come elegante. Non distruggeva eserciti, li disfaceva. Un incantesimo qui, una maledizione lì, e nel giro di ore le catene di comando nemiche collassavano. Si dice che durante la campagna contro il Ducato di Ossenval fu l'unica in grado di contrastare le loro pratiche innaturali. La sua statua è l'unica che sorride leggermente — e a seconda dell'ora del giorno, quel sorriso sembra diverso."}, {"id": "durgin", "name": "Durgin Runaforge", "cls": "Nano · Inventore", "icon": "⚙", "img": "eroe_durgin.jpg", "desc": "Durgin Runaforge costruiva cose che non assomigliavano a niente che un nano avesse mai costruito. Le sue macchine erano incomprensibili anche per gli ingegneri più brillanti, e lo sono ancora oggi. Si dice che durante l'assedio di Selvorn costruì in una notte un marchingegno che abbatté le mura nemiche — e poi lo smontò senza spiegare nulla. Le sue note sono conservate nella Grande Biblioteca delle Sallustine, dove studiosi ci lavorano da decenni senza riuscire a decifrarne più di una piccola parte."}, {"id": "sierra", "name": "Sierra Luce Bianca", "cls": "Umana · Chierica", "icon": "✨", "img": "eroe_sierra.jpg", "desc": "Sierra Luce Bianca era quella che meno cercava di sembrare straordinaria — ed era forse la più essenziale di tutti. Chierica di fede profonda e mani sicure, si dice che in tutta la campagna non perse nessuno dei compagni, nemmeno nei momenti impossibili. Si racconta che riportò Durgin in sé dopo tre giorni di delirio da veleno dichiarato letale, e che tenne in vita Groth con una mano sul petto per un'intera notte. La sua statua guarda verso il basso, come se stesse ancora pregando."}, {"id": "groth", "name": "Groth", "cls": "Orco · Barbaro", "icon": "⚔", "img": "immagini/eroe_groth.jpg", "desc": "Groth era un orco, e chi lo descriveva usava parole come \"valanga\" e \"catastrofe\" — e intendeva dei complimenti. Sul campo di battaglia era qualcosa oltre la forza fisica: si racconta che i Guardiani dei canyon lo avessero benedetto, che qualcosa di antico abitasse in lui durante il combattimento. Gli occhi diventavano diversi. La voce cambiava. I nemici che lo fronteggiavano raramente lo fronteggiavano una seconda volta. La sua statua sembra più grande delle altre — non lo è, ma così appare. Forse è la postura. Forse è qualcos'altro."}, {"id": "ottavo", "name": "???", "cls": "Sconosciuto", "icon": "?", "img": "eroe_ottavo.jpg", "desc": "L'ottava statua nella Fontana degli Otto non ha nome. Non ha volto. La pietra è liscia dove gli altri hanno lineamenti, vuota dove gli altri hanno espressioni. Non compare in nessuna cronaca ufficiale. Nessuno sa chi fosse, cosa facesse, perché sia lì. Eppure qualcuno la mise. E qualcuno, evidentemente, non vuole che si sappia chi era."}];
+  var N = H.length;
+  var ring  = document.getElementById("wring");
+  var rotor = document.getElementById("wrotor");
+  var panel = document.getElementById("hpanel");
+  var curA  = 0;
+  var selI  = -1;
+  var animating = false;
+
+  function getMetrics() {
+    var SZ = ring.offsetWidth;
+    return {
+      SZ: SZ,
+      R:  Math.round(SZ * 0.30),
+      OS: Math.round(SZ * 0.21)
+    };
+  }
+
+  function setPositions(angleDeg, animate) {
+    var m = getMetrics();
+    var octs = rotor.querySelectorAll(".hoct");
+    var transition = animate
+      ? "left 0.7s cubic-bezier(0.23,1,0.32,1), top 0.7s cubic-bezier(0.23,1,0.32,1)"
+      : "none";
+    for (var k = 0; k < octs.length; k++) {
+      var ang = ((2 * Math.PI * k / N) - Math.PI/2) + (angleDeg * Math.PI / 180);
+      var cx  = m.SZ/2 + m.R * Math.cos(ang);
+      var cy  = m.SZ/2 + m.R * Math.sin(ang);
+      octs[k].style.transition = transition;
+      octs[k].style.width  = m.OS + "px";
+      octs[k].style.height = m.OS + "px";
+      octs[k].style.left   = Math.round(cx - m.OS/2) + "px";
+      octs[k].style.top    = Math.round(cy - m.OS/2) + "px";
+    }
+  }
+
+  window.buildHeroWheel = function build() {
+    rotor.innerHTML = "";
+    var m = getMetrics();
+    for (var i = 0; i < N; i++) {
+      var ang = (2 * Math.PI * i / N) - Math.PI/2 + (curA * Math.PI / 180);
+      var cx  = m.SZ/2 + m.R * Math.cos(ang);
+      var cy  = m.SZ/2 + m.R * Math.sin(ang);
+      var el  = document.createElement("div");
+      el.className = "hoct";
+      el.style.cssText =
+        "width:" + m.OS + "px;" +
+        "height:" + m.OS + "px;" +
+        "left:" + Math.round(cx - m.OS/2) + "px;" +
+        "top:"  + Math.round(cy - m.OS/2) + "px;";
+      el.dataset.i = i;
+      el.innerHTML =
+        "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' style='position:absolute;inset:0;width:100%;height:100%;'>" +
+          "<polygon points='50.0,2.0 83.9,16.1 98.0,50.0 83.9,83.9 50.0,98.0 16.1,83.9 2.0,50.0 16.1,16.1' fill='#1a1608' stroke='rgba(201,168,76,0.5)' stroke-width='2.5'/>" +
+          "<polygon points='50.0,2.0 83.9,16.1 98.0,50.0 83.9,83.9 50.0,98.0 16.1,83.9 2.0,50.0 16.1,16.1' fill='none' stroke='rgba(201,168,76,0.1)' stroke-width='7'/>" +
+        "</svg>" +
+        "<div class='hoin'>" +
+          "<div class='hoic'>" + H[i].icon + "</div>" +
+          "<div class='honm'>" + H[i].name.split(" ").slice(0,2).join("<br>") + "</div>" +
+        "</div>";
+      el.addEventListener("click", (function(idx){ return function(){ if(!animating) sel(idx); }; })(i));
+      rotor.appendChild(el);
+    }
+    if (selI >= 0) rotor.querySelectorAll(".hoct")[selI].classList.add("hon");
+  }
+
+  function sel(idx) {
+    if (idx === selI) return;
+    selI = idx;
+
+    // Calcola delta per portare idx in basso (90deg)
+    var deg_i  = (360 / N * idx) - 90;
+    var visual = deg_i + curA;
+    var delta  = 90 - visual;
+    delta = ((delta % 360) + 360) % 360;
+    if (delta > 180) delta -= 360;
+    curA += delta;
+
+    animating = true;
+    setPositions(curA, true);
+
+    rotor.querySelectorAll(".hoct").forEach(function(o){ o.classList.remove("hon"); });
+    rotor.querySelectorAll(".hoct")[idx].classList.add("hon");
+
+    setTimeout(function(){ animating = false; }, 750);
+    showP(H[idx]);
+  }
+
+  function showP(h) {
+    document.getElementById("hpic").textContent  = h.icon;
+    document.getElementById("hpnm").textContent  = h.name;
+    document.getElementById("hpcl").textContent  = h.cls;
+    document.getElementById("hpds").textContent  = h.desc;
+    panel.classList.remove("hpon");
+    setTimeout(function(){ panel.classList.add("hpon"); }, 80);
+  }
+
+  document.getElementById("wcenter").onclick = function() {
+    if (animating) return;
+    curA = 0; selI = -1;
+    setPositions(0, true);
+    rotor.querySelectorAll(".hoct").forEach(function(o){ o.classList.remove("hon"); });
+    panel.classList.remove("hpon");
+  };
+
+  function initWheel() {
+    var SZ = ring.offsetWidth;
+    if (SZ === 0) {
+      requestAnimationFrame(initWheel);
+      return;
+    }
+    window.buildHeroWheel();
+  }
+
+  // Reinizializza quando si clicca il tab eroi
+  var tab = document.querySelector('[onclick*="eroi"]');
+  if (tab) {
+    var origOnclick = tab.getAttribute('onclick');
+    tab.setAttribute('onclick', origOnclick + '; setTimeout(function(){ window.buildHeroWheel && window.buildHeroWheel(); }, 50);');
+  }
+
+  window.addEventListener("resize", function(){ window.buildHeroWheel && window.buildHeroWheel(); });
+
+  // Aspetta che il layout sia pronto
+  if (document.readyState === "complete") {
+    requestAnimationFrame(initWheel);
+  } else {
+    window.addEventListener("load", function(){ requestAnimationFrame(initWheel); });
+  }
+})();
+  
+
+/* ══ DIVINITÀ ══ */
+
+(function(){
+  var D=[
+    {id:"aetharn",name:"Aetharn",alias:"Il Respiro",
+     svg:'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="22" fill="none" stroke="rgba(201,168,76,0.9)" stroke-width="2"/><path d="M50 28 Q65 50 50 72 Q35 50 50 28Z" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="1.5"/><line x1="28" y1="50" x2="72" y2="50" stroke="rgba(201,168,76,0.5)" stroke-width="1" stroke-dasharray="3,3"/><circle cx="50" cy="28" r="3" fill="rgba(201,168,76,0.8)"/><circle cx="50" cy="72" r="3" fill="rgba(201,168,76,0.4)"/><line x1="50" y1="6" x2="50" y2="18" stroke="rgba(201,168,76,0.4)" stroke-width="1" stroke-linecap="round"/><line x1="50" y1="82" x2="50" y2="94" stroke="rgba(201,168,76,0.2)" stroke-width="1" stroke-linecap="round"/></svg>',
+     wsv:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="18" fill="none" stroke="rgba(201,168,76,0.8)" stroke-width="2"/><path d="M50 32 Q62 50 50 68 Q38 50 50 32Z" fill="none" stroke="rgba(201,168,76,0.6)" stroke-width="1.5"/><circle cx="50" cy="32" r="2.5" fill="rgba(201,168,76,0.8)"/><circle cx="50" cy="68" r="2.5" fill="rgba(201,168,76,0.4)"/></svg>',
+     desc:"Di giorno brucia. Di notte congela. Il ciclo è sempre lo stesso, sempre uguale, sempre spietato — e questo, paradossalmente, è l'unica cosa che dà conforto. Aetharn non è il sole né la luna, non è il caldo né il freddo. È il fatto che l'uno segue sempre l'altro. Il mondo che inspira ed espira. Una presenza che non si può fermare, non si può pregare di rallentare, non si può convincere. Si prega Aetharn per avere la forza di sopravvivere al ciclo — non per cambiarlo."},
+    {id:"vorath",name:"Vorath",alias:"La Voce",
+     svg:'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="50" y1="10" x2="30" y2="90" stroke="rgba(201,168,76,0.8)" stroke-width="1.8" stroke-linecap="round"/><line x1="50" y1="10" x2="70" y2="90" stroke="rgba(201,168,76,0.8)" stroke-width="1.8" stroke-linecap="round"/><line x1="50" y1="10" x2="15" y2="60" stroke="rgba(201,168,76,0.5)" stroke-width="1.2" stroke-linecap="round"/><line x1="50" y1="10" x2="85" y2="60" stroke="rgba(201,168,76,0.5)" stroke-width="1.2" stroke-linecap="round"/><line x1="50" y1="10" x2="50" y2="90" stroke="rgba(201,168,76,0.3)" stroke-width="1" stroke-linecap="round"/><circle cx="50" cy="10" r="4" fill="rgba(201,168,76,0.9)"/></svg>',
+     wsv:'<svg viewBox="0 0 100 100"><line x1="50" y1="20" x2="35" y2="80" stroke="rgba(201,168,76,0.8)" stroke-width="1.8" stroke-linecap="round"/><line x1="50" y1="20" x2="65" y2="80" stroke="rgba(201,168,76,0.8)" stroke-width="1.8" stroke-linecap="round"/><line x1="50" y1="20" x2="22" y2="58" stroke="rgba(201,168,76,0.5)" stroke-width="1.2" stroke-linecap="round"/><line x1="50" y1="20" x2="78" y2="58" stroke="rgba(201,168,76,0.5)" stroke-width="1.2" stroke-linecap="round"/><circle cx="50" cy="20" r="3.5" fill="rgba(201,168,76,0.9)"/></svg>',
+     desc:"Non ha forma. Non ha intenzione. Non ha pietà — ma non ha nemmeno crudeltà, perché la crudeltà implica una scelta. Vorath è la tempesta che arriva senza avvisare, distrugge senza distinzione, sparisce senza spiegazioni. Non si può pregare per fermarla. L'unica preghiera che ha senso rivolgere a Vorath è una sola: non vedermi. È l'unica divinità del pantheon a cui nessuno chiede favori. I templi dedicati a Vorath non contengono offerte né canti. Contengono silenzio."},
+    {id:"mivorn",name:"Mivorn",alias:"Il Custode",
+     svg:'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="30" fill="none" stroke="rgba(201,168,76,0.6)" stroke-width="1.5"/><circle cx="50" cy="50" r="18" fill="none" stroke="rgba(201,168,76,0.8)" stroke-width="2"/><circle cx="50" cy="50" r="6" fill="rgba(201,168,76,0.4)"/><line x1="50" y1="20" x2="50" y2="32" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/><line x1="50" y1="68" x2="50" y2="80" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="50" x2="32" y2="50" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/><line x1="68" y1="50" x2="80" y2="50" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/></svg>',
+     wsv:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="24" fill="none" stroke="rgba(201,168,76,0.6)" stroke-width="1.5"/><circle cx="50" cy="50" r="14" fill="none" stroke="rgba(201,168,76,0.8)" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="rgba(201,168,76,0.4)"/><line x1="50" y1="26" x2="50" y2="36" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/><line x1="50" y1="64" x2="50" y2="74" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="50" x2="36" y2="50" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/><line x1="64" y1="50" x2="74" y2="50" stroke="rgba(201,168,76,0.6)" stroke-width="1.5" stroke-linecap="round"/></svg>',
+     desc:"Dentro i canyon esistono cose che non dovrebbero esistere. Foreste dove dovrebbe esserci solo roccia. Acque dove dovrebbe esserci solo sabbia. Qualcosa li tiene in vita. Qualcosa vuole che esistano. Mivorn non è un Guardiano — o almeno, così dicono gli Archivisti, con la cautela di chi sa di non sapere abbastanza. Chi vive vicino ai canyon gli offre tributi prima di avvicinarsi — non per chiedere permesso, ma per riconoscere che quello non è territorio suo. I canyon esistono ancora. Per chi crede in Mivorn, questa è risposta sufficiente."},
+    {id:"solarn",name:"Solarn",alias:"Il Passante",
+     svg:'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 50 Q35 30 50 50 Q65 70 85 50" fill="none" stroke="rgba(201,168,76,0.9)" stroke-width="2" stroke-linecap="round"/><circle cx="85" cy="50" r="4" fill="rgba(201,168,76,0.8)"/><circle cx="15" cy="50" r="2.5" fill="rgba(201,168,76,0.3)"/><line x1="78" y1="44" x2="85" y2="50" stroke="rgba(201,168,76,0.7)" stroke-width="1.5" stroke-linecap="round"/><line x1="78" y1="56" x2="85" y2="50" stroke="rgba(201,168,76,0.7)" stroke-width="1.5" stroke-linecap="round"/><circle cx="32" cy="37" r="2" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="1"/><circle cx="68" cy="63" r="2" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="1"/></svg>',
+     wsv:'<svg viewBox="0 0 100 100"><path d="M18 50 Q35 32 50 50 Q65 68 82 50" fill="none" stroke="rgba(201,168,76,0.9)" stroke-width="2" stroke-linecap="round"/><circle cx="82" cy="50" r="3.5" fill="rgba(201,168,76,0.8)"/><line x1="76" y1="45" x2="82" y2="50" stroke="rgba(201,168,76,0.7)" stroke-width="1.5" stroke-linecap="round"/><line x1="76" y1="55" x2="82" y2="50" stroke="rgba(201,168,76,0.7)" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="50" r="2" fill="rgba(201,168,76,0.3)"/></svg>',
+     desc:"Cammina tra le divinità e tra gli uomini. Non appartiene completamente né agli uni né agli altri — è il filo che li collega, la presenza che agisce per il bene delle altre quattro senza mai fermarsi abbastanza a lungo da essere compresa davvero. Solarn è il Passante — colui che sceglie gli Sfiorati. Si ferma davanti a qualcuno, lo sfiora leggermente, e prosegue. Non si sa perché scelga chi sceglie. Si dice sottovoce che scelga chi ha qualcosa da attraversare. Per questo la gente prega per non essere scelta. Una vita piccola e intera vale più di una vita grande e spezzata."},
+    {id:"suveth",name:"Suveth",alias:"La Quiete",
+     svg:'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="55" x2="90" y2="55" stroke="rgba(201,168,76,0.9)" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="65" x2="80" y2="65" stroke="rgba(201,168,76,0.5)" stroke-width="1.2" stroke-linecap="round"/><line x1="32" y1="75" x2="68" y2="75" stroke="rgba(201,168,76,0.25)" stroke-width="1" stroke-linecap="round"/><line x1="25" y1="42" x2="40" y2="30" stroke="rgba(201,168,76,0.3)" stroke-width="1" stroke-linecap="round" stroke-dasharray="2,3"/><line x1="60" y1="30" x2="75" y2="42" stroke="rgba(201,168,76,0.3)" stroke-width="1" stroke-linecap="round" stroke-dasharray="2,3"/><line x1="40" y1="30" x2="60" y2="30" stroke="rgba(201,168,76,0.2)" stroke-width="1" stroke-linecap="round" stroke-dasharray="2,3"/></svg>',
+     wsv:'<svg viewBox="0 0 100 100"><line x1="14" y1="52" x2="86" y2="52" stroke="rgba(201,168,76,0.9)" stroke-width="2" stroke-linecap="round"/><line x1="24" y1="62" x2="76" y2="62" stroke="rgba(201,168,76,0.5)" stroke-width="1.2" stroke-linecap="round"/><line x1="36" y1="72" x2="64" y2="72" stroke="rgba(201,168,76,0.25)" stroke-width="1" stroke-linecap="round"/></svg>',
+     desc:"Chi muore nella Piana non torna. Il corpo sparisce sotto la sabbia, i Velieri di Cenere non trovano mai nulla. Gli abitanti di Veloria credono che ci sia qualcosa che li riceve — non un posto di punizione né di ricompensa. Solo un altro posto. Più silenzioso. Suveth non cerca nessuno. Aspetta che arrivino tutti. La Quiete è la contrapposizione naturale alla Voce — laddove Vorath arriva senza avvisare e distrugge tutto, Suveth è sempre ferma, sempre silenziosa, sempre presente. Si prega Suveth quando qualcuno parte per la Piana e non si sa se tornerà."}
+  ];
+  var N=D.length,ring=document.getElementById("dwring"),rotor=document.getElementById("dwrotor"),panel=document.getElementById("dpanel"),curA=0,selI=-1,animating=false;
+  function pentPts(cx,cy,r){var p=[];for(var i=0;i<5;i++){var a=(2*Math.PI*i/5)-Math.PI/2;p.push((cx+r*Math.cos(a)).toFixed(1)+","+(cy+r*Math.sin(a)).toFixed(1));}return p.join(" ");}
+  function getM(){var SZ=ring.offsetWidth;return{SZ:SZ,R:Math.round(SZ*0.30),OS:Math.round(SZ*0.21)};}
+  function setPos(angleDeg,animate){var m=getM();var pents=rotor.querySelectorAll(".dpent");var tr=animate?"left 0.85s cubic-bezier(0.23,1,0.32,1),top 0.85s cubic-bezier(0.23,1,0.32,1)":"none";for(var k=0;k<pents.length;k++){var ang=((2*Math.PI*k/N)-Math.PI/2)+(angleDeg*Math.PI/180);var cx=m.SZ/2+m.R*Math.cos(ang);var cy=m.SZ/2+m.R*Math.sin(ang);pents[k].style.transition=tr;pents[k].style.width=m.OS+"px";pents[k].style.height=m.OS+"px";pents[k].style.left=Math.round(cx-m.OS/2)+"px";pents[k].style.top=Math.round(cy-m.OS/2)+"px";}}
+  window.buildDivWheel=function(){
+    rotor.innerHTML="";var m=getM();var pp=pentPts(50,50,46);
+    for(var i=0;i<N;i++){
+      var ang=(2*Math.PI*i/N)-Math.PI/2+(curA*Math.PI/180);
+      var cx=m.SZ/2+m.R*Math.cos(ang);var cy=m.SZ/2+m.R*Math.sin(ang);
+      var el=document.createElement("div");el.className="dpent";
+      el.style.cssText="width:"+m.OS+"px;height:"+m.OS+"px;left:"+Math.round(cx-m.OS/2)+"px;top:"+Math.round(cy-m.OS/2)+"px;";
+      el.dataset.i=i;
+      el.innerHTML="<svg class='bg' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><polygon points='"+pp+"' fill='#1a1608' stroke='rgba(201,168,76,0.5)' stroke-width='2.5'/><polygon points='"+pp+"' fill='none' stroke='rgba(201,168,76,0.1)' stroke-width='7'/></svg><div class='dpin'><div class='dpic'>"+D[i].wsv+"</div><div class='dpnm'>"+D[i].name+"<br><span style='opacity:.6;font-size:.85em'>"+D[i].alias+"</span></div></div>";
+      el.addEventListener("click",(function(idx){return function(){if(!animating)selD(idx);};})(i));
+      rotor.appendChild(el);
+    }
+    if(selI>=0) rotor.querySelectorAll(".dpent")[selI].classList.add("don");
+  };
+  function selD(idx){
+    if(idx===selI)return;selI=idx;
+    var delta=90-((360/N*idx)-90+curA);delta=((delta%360)+360)%360;if(delta>180)delta-=360;curA+=delta;
+    animating=true;setPos(curA,true);
+    rotor.querySelectorAll(".dpent").forEach(function(o){o.classList.remove("don");});
+    rotor.querySelectorAll(".dpent")[idx].classList.add("don");
+    setTimeout(function(){animating=false;},900);showD(D[idx]);
+  }
+  function showD(d){
+    document.getElementById("dpsvg").innerHTML=d.svg;
+    document.getElementById("dpnmb").textContent=d.name;
+    document.getElementById("dpalias").textContent=d.alias;
+    document.getElementById("dpds").textContent=d.desc;
+    panel.classList.remove("dpon");setTimeout(function(){panel.classList.add("dpon");},80);
+  }
+  document.getElementById("dwcenter").onclick=function(){if(animating)return;curA=0;selI=-1;setPos(0,true);rotor.querySelectorAll(".dpent").forEach(function(o){o.classList.remove("don");});panel.classList.remove("dpon");};
+  function initDW(){var SZ=ring.offsetWidth;if(SZ===0){requestAnimationFrame(initDW);return;}window.buildDivWheel();}
+  var tab=document.querySelector('[onclick*="divinita"]');
+  if(tab){var orig=tab.getAttribute('onclick');tab.setAttribute('onclick',orig+';setTimeout(function(){window.buildDivWheel&&window.buildDivWheel();},50);');}
+  window.addEventListener("resize",function(){window.buildDivWheel&&window.buildDivWheel();});
+  if(document.readyState==="complete"){requestAnimationFrame(initDW);}else{window.addEventListener("load",function(){requestAnimationFrame(initDW);});}
+})();
+  
+
 </script>
 
 <script id="pdataContainer" type="application/json"></script>
