@@ -449,8 +449,8 @@ function doLogin(id){
       <!-- Cal -->
       <div class="pc-card" id="pc-cal" style="cursor:pointer;border:1px solid rgba(58,53,40,0.8);border-radius:6px;overflow:visible;background:#1c1a15;position:relative;">
         <div class="pc-img-wrap" style="aspect-ratio:2/3;position:relative;overflow:visible;margin:12px 12px 0 12px;border-radius:4px;border:1px solid rgba(201,168,76,0.25);">
-          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-image:url('immagini/cal_bg.jpg');background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;"></div></div>
-          <img class="pc-pg" src="immagini/cal_pg.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
+          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;" data-img-key="cal_bg"></div></div>
+          <img class="pc-pg" id="pc-img-cal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
           
         </div>
         <div style="padding:16px 14px 20px;position:relative;">
@@ -464,8 +464,8 @@ function doLogin(id){
       <!-- Aurelio -->
       <div class="pc-card" id="pc-aurelio" style="cursor:pointer;border:1px solid rgba(58,53,40,0.8);border-radius:6px;overflow:visible;background:#1c1a15;position:relative;">
         <div class="pc-img-wrap" style="aspect-ratio:2/3;position:relative;overflow:visible;margin:12px 12px 0 12px;border-radius:4px;border:1px solid rgba(201,168,76,0.25);">
-          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-image:url('immagini/aurelio_bg.jpg');background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;"></div></div>
-          <img class="pc-pg" src="immagini/aurelio_pg.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
+          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;" data-img-key="aurelio_bg"></div></div>
+          <img class="pc-pg" id="pc-img-aurelio" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
           
         </div>
         <div style="padding:16px 14px 20px;position:relative;">
@@ -479,8 +479,8 @@ function doLogin(id){
       <!-- Maily -->
       <div class="pc-card" id="pc-maily" style="cursor:pointer;border:1px solid rgba(58,53,40,0.8);border-radius:6px;overflow:visible;background:#1c1a15;position:relative;">
         <div class="pc-img-wrap" style="aspect-ratio:2/3;position:relative;overflow:visible;margin:12px 12px 0 12px;border-radius:4px;border:1px solid rgba(201,168,76,0.25);">
-          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-image:url('immagini/maily_bg.jpg');background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;"></div></div>
-          <img class="pc-pg" src="immagini/maily_pg.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
+          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;" data-img-key="maily_bg"></div></div>
+          <img class="pc-pg" id="pc-img-maily" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
           
         </div>
         <div style="padding:16px 14px 20px;position:relative;">
@@ -494,8 +494,8 @@ function doLogin(id){
       <!-- Flack -->
       <div class="pc-card" id="pc-flack" style="cursor:pointer;border:1px solid rgba(58,53,40,0.8);border-radius:6px;overflow:visible;background:#1c1a15;position:relative;">
         <div class="pc-img-wrap" style="aspect-ratio:2/3;position:relative;overflow:visible;margin:12px 12px 0 12px;border-radius:4px;border:1px solid rgba(201,168,76,0.25);">
-          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-image:url('immagini/flack_bg.jpg');background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;"></div></div>
-          <img class="pc-pg" src="immagini/flack_pg.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
+          <div style="position:absolute;inset:0;overflow:hidden;border-radius:4px;"><div class="pc-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .5s ease,filter .5s ease;" data-img-key="flack_bg"></div></div>
+          <img class="pc-pg" id="pc-img-flack" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:90%;object-fit:contain;transition:transform .6s cubic-bezier(0.23,1,0.32,1),filter .6s ease;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.8));">
           
         </div>
         <div style="padding:16px 14px 20px;position:relative;">
@@ -555,7 +555,7 @@ button:hover{background:rgba(201,168,76,0.1) !important;color:rgba(201,168,76,1)
 </nav>
 
 <div id="introHero" style="display:block;position:relative;width:100%;height:80vh;min-height:560px;overflow:visible;background:transparent;">
-  <div id="introHeroBg" style="position:absolute;top:-30%;left:0;right:0;bottom:-30%;background:url('immagini/copertina_silverwind.jpg') center center/cover no-repeat;background-color:#2a2418;will-change:transform;"></div>
+  <div id="introHeroBg" style="position:absolute;top:-30%;left:0;right:0;bottom:-30%;background:url('') center center/cover no-repeat" data-img-key="copertina" data-img-style="background;background-color:#2a2418;will-change:transform;"></div>
   <div style="position:absolute;top:0;left:0;right:0;bottom:-400px;background:linear-gradient(to bottom,rgba(19,18,15,0.05) 0%,rgba(19,18,15,0.15) 25%,rgba(19,18,15,0.55) 55%,rgba(19,18,15,0.88) 75%,rgba(19,18,15,1) 88%,rgba(19,18,15,1) 100%);pointer-events:none;"></div>
   <div id="introHeroText" style="position:absolute;top:19.4vh;left:0;right:0;text-align:center;padding:0 24px;will-change:top;z-index:10;">
     <div class="eyebrow" style="font-size:15px;letter-spacing:6px;text-shadow:0 0 16px rgba(0,0,0,1),0 3px 16px rgba(0,0,0,1),0 0 40px rgba(201,168,76,0.4);">Veloria · Città-Stato</div>
@@ -1064,7 +1064,7 @@ button:hover{background:rgba(201,168,76,0.1) !important;color:rgba(201,168,76,1)
 
   <script>
 (function(){
-  var H = [{"id": "aurelio", "name": "Aurelio Ottavio Gladius", "cls": "Elfo · Spadaccino · Il Re", "icon": "👑", "img": "eroe_aurelio.jpg", "desc": "Aurelio Ottavio Gladius è l'unico degli eroi ancora in vita — o almeno, ancora sul trono. Un elfo dalla presenza silenziosa e misurata, che trecento anni fa non era un re ma un avventuriero come tanti, con una spada al fianco e un'idea fissa in testa: che Silverwind meritasse qualcuno che combattesse per lei invece di sopra di lei. Lo fece. E rimase. Nella Fontana degli Otto la sua statua è uguale alle altre — stessa dimensione, stessa cura — perché lui volle così. Per Aurelio i suoi sette compagni non erano subordinati né seguaci: erano uguali, e quella parola la prendeva sul serio. Chi lo ha visto di persona dice che somiglia ancora alla statua in modo inquietante. Negli ultimi anni qualcosa in lui sembra cambiato. La gente ne parla sottovoce, senza prove, senza certezze."}, {"id": "elarion", "name": "Elarion l'Oscuro", "cls": "Elfo · Poteri Oscuri", "icon": "🌑", "img": "eroe_elarion.jpg", "desc": "Di Elarion l'Oscuro si sa poco, e quello che si sa spaventa. Era un elfo — ma di quale stirpe, da dove venisse, non lo sa nessuno. Si racconta che durante la battaglia decisiva, il sole sparì. Non tramontò — sparì, per ore, su tutto Veloria. Quando tornò, l'esercito nemico aveva deposto le armi senza che nessuno li avesse toccati. I suoi poteri erano oscuri nel senso più letterale — incomprensibili, spaventosi, qualcosa che la magia non riesce a spiegare ancora oggi. La sua statua è l'unica che i bambini evitano di toccare. Nessuno gliel'ha mai detto di farlo. Lo fanno e basta."}, {"id": "aldren", "name": "Aldren Mano del Cielo", "cls": "Elfo · Arciere", "icon": "🏹", "img": "eroe_aldren.jpg", "desc": "Aldren Mano del Cielo era la guardia del corpo di Aurelio. Un elfo alto e silenzioso, con un arco e un coltello e nient'altro, capace di tenere testa da solo a intere formazioni nemiche. Si racconta che durante la campagna contro Valmera, un Tarrasque fu liberato come arma disperata. Aldren prese una freccia. Una sola. E trapassò la creatura da parte a parte. Un Tarrasque non si uccide così, lo sanno tutti, eppure si dice che non si rialzò fino alla fine della battaglia. Finché Aldren era in piedi, Aurelio non veniva toccato."}, {"id": "malavreth", "name": "Malavreth Cinderfall", "cls": "Tiefling · Stregona", "icon": "🔥", "img": "eroe_malavreth.jpg", "desc": "Malavreth Cinderfall era una Tiefling dalla pelle color cenere e gli occhi color brace. Stregona di potere raro, aveva un modo di fare la guerra che i contemporanei descrivevano come elegante. Non distruggeva eserciti, li disfaceva. Un incantesimo qui, una maledizione lì, e nel giro di ore le catene di comando nemiche collassavano. Si dice che durante la campagna contro il Ducato di Ossenval fu l'unica in grado di contrastare le loro pratiche innaturali. La sua statua è l'unica che sorride leggermente — e a seconda dell'ora del giorno, quel sorriso sembra diverso."}, {"id": "durgin", "name": "Durgin Runaforge", "cls": "Nano · Inventore", "icon": "⚙", "img": "eroe_durgin.jpg", "desc": "Durgin Runaforge costruiva cose che non assomigliavano a niente che un nano avesse mai costruito. Le sue macchine erano incomprensibili anche per gli ingegneri più brillanti, e lo sono ancora oggi. Si dice che durante l'assedio di Selvorn costruì in una notte un marchingegno che abbatté le mura nemiche — e poi lo smontò senza spiegare nulla. Le sue note sono conservate nella Grande Biblioteca delle Sallustine, dove studiosi ci lavorano da decenni senza riuscire a decifrarne più di una piccola parte."}, {"id": "sierra", "name": "Sierra Luce Bianca", "cls": "Umana · Chierica", "icon": "✨", "img": "eroe_sierra.jpg", "desc": "Sierra Luce Bianca era quella che meno cercava di sembrare straordinaria — ed era forse la più essenziale di tutti. Chierica di fede profonda e mani sicure, si dice che in tutta la campagna non perse nessuno dei compagni, nemmeno nei momenti impossibili. Si racconta che riportò Durgin in sé dopo tre giorni di delirio da veleno dichiarato letale, e che tenne in vita Groth con una mano sul petto per un'intera notte. La sua statua guarda verso il basso, come se stesse ancora pregando."}, {"id": "groth", "name": "Groth", "cls": "Orco · Barbaro", "icon": "⚔", "img": "immagini/eroe_groth.jpg", "desc": "Groth era un orco, e chi lo descriveva usava parole come \"valanga\" e \"catastrofe\" — e intendeva dei complimenti. Sul campo di battaglia era qualcosa oltre la forza fisica: si racconta che i Guardiani dei canyon lo avessero benedetto, che qualcosa di antico abitasse in lui durante il combattimento. Gli occhi diventavano diversi. La voce cambiava. I nemici che lo fronteggiavano raramente lo fronteggiavano una seconda volta. La sua statua sembra più grande delle altre — non lo è, ma così appare. Forse è la postura. Forse è qualcos'altro."}, {"id": "ottavo", "name": "???", "cls": "Sconosciuto", "icon": "?", "img": "eroe_ottavo.jpg", "desc": "L'ottava statua nella Fontana degli Otto non ha nome. Non ha volto. La pietra è liscia dove gli altri hanno lineamenti, vuota dove gli altri hanno espressioni. Non compare in nessuna cronaca ufficiale. Nessuno sa chi fosse, cosa facesse, perché sia lì. Eppure qualcuno la mise. E qualcuno, evidentemente, non vuole che si sappia chi era."}];
+  var H = [{"id": "aurelio", "name": "Aurelio Ottavio Gladius", "cls": "Elfo · Spadaccino · Il Re", "icon": "👑", "img": "eroe_aurelio", "desc": "Aurelio Ottavio Gladius è l'unico degli eroi ancora in vita — o almeno, ancora sul trono. Un elfo dalla presenza silenziosa e misurata, che trecento anni fa non era un re ma un avventuriero come tanti, con una spada al fianco e un'idea fissa in testa: che Silverwind meritasse qualcuno che combattesse per lei invece di sopra di lei. Lo fece. E rimase. Nella Fontana degli Otto la sua statua è uguale alle altre — stessa dimensione, stessa cura — perché lui volle così. Per Aurelio i suoi sette compagni non erano subordinati né seguaci: erano uguali, e quella parola la prendeva sul serio. Chi lo ha visto di persona dice che somiglia ancora alla statua in modo inquietante. Negli ultimi anni qualcosa in lui sembra cambiato. La gente ne parla sottovoce, senza prove, senza certezze."}, {"id": "elarion", "name": "Elarion l'Oscuro", "cls": "Elfo · Poteri Oscuri", "icon": "🌑", "img": "eroe_elarion", "desc": "Di Elarion l'Oscuro si sa poco, e quello che si sa spaventa. Era un elfo — ma di quale stirpe, da dove venisse, non lo sa nessuno. Si racconta che durante la battaglia decisiva, il sole sparì. Non tramontò — sparì, per ore, su tutto Veloria. Quando tornò, l'esercito nemico aveva deposto le armi senza che nessuno li avesse toccati. I suoi poteri erano oscuri nel senso più letterale — incomprensibili, spaventosi, qualcosa che la magia non riesce a spiegare ancora oggi. La sua statua è l'unica che i bambini evitano di toccare. Nessuno gliel'ha mai detto di farlo. Lo fanno e basta."}, {"id": "aldren", "name": "Aldren Mano del Cielo", "cls": "Elfo · Arciere", "icon": "🏹", "img": "eroe_aldren", "desc": "Aldren Mano del Cielo era la guardia del corpo di Aurelio. Un elfo alto e silenzioso, con un arco e un coltello e nient'altro, capace di tenere testa da solo a intere formazioni nemiche. Si racconta che durante la campagna contro Valmera, un Tarrasque fu liberato come arma disperata. Aldren prese una freccia. Una sola. E trapassò la creatura da parte a parte. Un Tarrasque non si uccide così, lo sanno tutti, eppure si dice che non si rialzò fino alla fine della battaglia. Finché Aldren era in piedi, Aurelio non veniva toccato."}, {"id": "malavreth", "name": "Malavreth Cinderfall", "cls": "Tiefling · Stregona", "icon": "🔥", "img": "eroe_malavreth", "desc": "Malavreth Cinderfall era una Tiefling dalla pelle color cenere e gli occhi color brace. Stregona di potere raro, aveva un modo di fare la guerra che i contemporanei descrivevano come elegante. Non distruggeva eserciti, li disfaceva. Un incantesimo qui, una maledizione lì, e nel giro di ore le catene di comando nemiche collassavano. Si dice che durante la campagna contro il Ducato di Ossenval fu l'unica in grado di contrastare le loro pratiche innaturali. La sua statua è l'unica che sorride leggermente — e a seconda dell'ora del giorno, quel sorriso sembra diverso."}, {"id": "durgin", "name": "Durgin Runaforge", "cls": "Nano · Inventore", "icon": "⚙", "img": "eroe_durgin", "desc": "Durgin Runaforge costruiva cose che non assomigliavano a niente che un nano avesse mai costruito. Le sue macchine erano incomprensibili anche per gli ingegneri più brillanti, e lo sono ancora oggi. Si dice che durante l'assedio di Selvorn costruì in una notte un marchingegno che abbatté le mura nemiche — e poi lo smontò senza spiegare nulla. Le sue note sono conservate nella Grande Biblioteca delle Sallustine, dove studiosi ci lavorano da decenni senza riuscire a decifrarne più di una piccola parte."}, {"id": "sierra", "name": "Sierra Luce Bianca", "cls": "Umana · Chierica", "icon": "✨", "img": "eroe_sierra", "desc": "Sierra Luce Bianca era quella che meno cercava di sembrare straordinaria — ed era forse la più essenziale di tutti. Chierica di fede profonda e mani sicure, si dice che in tutta la campagna non perse nessuno dei compagni, nemmeno nei momenti impossibili. Si racconta che riportò Durgin in sé dopo tre giorni di delirio da veleno dichiarato letale, e che tenne in vita Groth con una mano sul petto per un'intera notte. La sua statua guarda verso il basso, come se stesse ancora pregando."}, {"id": "groth", "name": "Groth", "cls": "Orco · Barbaro", "icon": "⚔", "img": "eroe_groth", "desc": "Groth era un orco, e chi lo descriveva usava parole come \"valanga\" e \"catastrofe\" — e intendeva dei complimenti. Sul campo di battaglia era qualcosa oltre la forza fisica: si racconta che i Guardiani dei canyon lo avessero benedetto, che qualcosa di antico abitasse in lui durante il combattimento. Gli occhi diventavano diversi. La voce cambiava. I nemici che lo fronteggiavano raramente lo fronteggiavano una seconda volta. La sua statua sembra più grande delle altre — non lo è, ma così appare. Forse è la postura. Forse è qualcos'altro."}, {"id": "ottavo", "name": "???", "cls": "Sconosciuto", "icon": "?", "img": "eroe_ottavo", "desc": "L'ottava statua nella Fontana degli Otto non ha nome. Non ha volto. La pietra è liscia dove gli altri hanno lineamenti, vuota dove gli altri hanno espressioni. Non compare in nessuna cronaca ufficiale. Nessuno sa chi fosse, cosa facesse, perché sia lì. Eppure qualcuno la mise. E qualcuno, evidentemente, non vuole che si sappia chi era."}];
   var N = H.length;
   var ring  = document.getElementById("wring");
   var rotor = document.getElementById("wrotor");
@@ -2206,10 +2206,51 @@ window.addEventListener('load', initMap);
 
 <script>
 var appuntiData = {};
+/* ══════════════════════════════════════════════════
+   CONFIGURAZIONE IMMAGINI
+   Sostituisci i valori '' con i link diretti alle immagini.
+   Usa qualsiasi servizio di hosting (catbox.moe, GitHub, ecc.)
+   Esempio: 'https://i.catbox.moe/abc123.jpg'
+══════════════════════════════════════════════════ */
+var IMGS = {
+  // Schermata di login — sfondo e ritratto per ogni giocatore
+  cal_bg:      '',
+  cal_pg:      '',
+  aurelio_bg:  '',
+  aurelio_pg:  '',
+  maily_bg:    '',
+  maily_pg:    '',
+  flack_bg:    '',
+  flack_pg:    '',
+
+  // Hero parallax — immagine di copertina
+  copertina:   '',
+
+  // Gli Otto Eroi
+  eroe_aurelio:   '',
+  eroe_elarion:   '',
+  eroe_aldren:    '',
+  eroe_malavreth: '',
+  eroe_durgin:    '',
+  eroe_sierra:    '',
+  eroe_groth:     '',
+  eroe_ottavo:    '',
+
+  // Sezione Storia
+  storia_battaglia: '',
+
+  // Canyon & Deserto
+  deserto:          '',
+  canyon_spire:     '',
+  canyon_riflessi:  '',
+  canyon_pioggia:   '',
+  canyon_silente:   ''
+};
+
 var CHARS = {
   cal: {
     pwd: 'SergiusBiggestDick', nome: 'Cal',
-    img: 'immagini/cal_pg.png',
+    img: IMGS.cal_pg,
     scheda: {
       razza: '—', classe: '—', sottoclasse: '—', livello: 1,
       hpMax: '—', ca: '—', init: '—', velocita: '—',
@@ -2233,7 +2274,7 @@ var CHARS = {
   },
   aurelio: {
     pwd: 'SuperMariottide', nome: 'Aurelio',
-    img: 'immagini/aurelio_pg.png',
+    img: IMGS.aurelio_pg,
     scheda: {
       razza: '—', classe: '—', sottoclasse: '—', livello: 1,
       hpMax: '—', ca: '—', init: '—', velocita: '—',
@@ -2257,7 +2298,7 @@ var CHARS = {
   },
   maily: {
     pwd: 'CheccouzTheBest', nome: 'Maily',
-    img: 'immagini/maily_pg.png',
+    img: IMGS.maily_pg,
     scheda: {
       razza: '—', classe: '—', sottoclasse: '—', livello: 1,
       hpMax: '—', ca: '—', init: '—', velocita: '—',
@@ -2281,7 +2322,7 @@ var CHARS = {
   },
   flack: {
     pwd: 'MiracoloPiemontesi', nome: 'Flack',
-    img: 'immagini/flack_pg.png',
+    img: IMGS.flack_pg,
     scheda: {
       razza: 'Drow (Dark Elf)', classe: 'Stregone', sottoclasse: 'Anima Divina', livello: 10,
       hpMax: '—', ca: 12, init: '+2', velocita: '30 ft',
@@ -4646,8 +4687,24 @@ function loadEmbeddedData(){
 }
 
 loadEmbeddedData();
-</script>
 
-<script id="pdataContainer" type="application/json"></script>
+// Inizializza tutte le immagini dal blocco IMGS
+(function initImgs(){
+  // Background cards login
+  document.querySelectorAll('[data-img-key]').forEach(function(el){
+    var key = el.getAttribute('data-img-key');
+    var url = IMGS[key] || '';
+    if(!url) return;
+    el.style.backgroundImage = 'url(' + url + ')';
+  });
+  // Ritratti personaggi login
+  ['cal','aurelio','maily','flack'].forEach(function(id){
+    var img = document.getElementById('pc-img-' + id);
+    if(img && IMGS[id + '_pg']) img.src = IMGS[id + '_pg'];
+  });
+  // Hero parallax copertina
+  var heroBg = document.getElementById('introHeroBg');
+  if(heroBg && IMGS.copertina) heroBg.style.backgroundImage = "url('" + IMGS.copertina + "')";
+})();
 
 </body>
