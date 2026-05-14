@@ -4222,7 +4222,7 @@ function viewNPC(id){
   ov.className='view-modal-overlay'; ov.id='viewModalOv';
   ov.onclick=function(e){if(e.target===ov)closeViewModal();};
   var av = n.img
-    ? '<img class="view-modal-avatar" src="npc/'+escHtml(n.img)+'">'
+    ? '<img class="view-modal-avatar" src="'+escHtml(n.img)+'">'
     : '<div class="view-modal-avatar-ph">&#128100;</div>';
   var tags = (n.tags||[]).map(function(t){return '<span class="npc-tag">'+escHtml(t)+'</span>';}).join('');
   var note = n.note ? '<div class="view-modal-divider"></div><div class="view-modal-note">'+escHtml(n.note)+'</div>' : '';
@@ -4291,7 +4291,7 @@ function npcRender(filter){
     return;
   }
   grid.innerHTML = list.map(function(n){
-    var av = n.img ? '<img class="npc-avatar" src="npc/'+escHtml(n.img)+'">' : '<div class="npc-avatar-ph">&#128100;</div>';
+    var av = n.img ? '<img class="npc-avatar" src="'+escHtml(n.img)+'">' : '<div class="npc-avatar-ph">&#128100;</div>';
     var tg = (n.tags||[]).slice(0,3).map(function(t){ return '<span class="npc-tag">'+escHtml(t)+'</span>'; }).join('');
     return '<div class="npc-card" data-id="'+escHtml(n.id)+'">'+av
       +'<div class="npc-name">'+escHtml(n.nome)+'</div>'
@@ -4333,13 +4333,13 @@ function npcOpenModal(id){
   var tgH = window._npcEditTags.map(function(t,i){
     return '<span class="npc-tag-edit">'+escHtml(t)+'<span class="npc-tag-del" data-idx="'+i+'"> &#215;</span></span>';
   }).join('');
-  var avH = n.img ? '<img class="npc-modal-avatar" id="npcModalAvatar" src="npc/'+n.img+'">' : '<div class="npc-modal-avatar-ph" id="npcModalAvatarPh">👤</div>';
+  var avH = n.img ? '<img class="npc-modal-avatar" id="npcModalAvatar" src="'+n.img+'">' : '<div class="npc-modal-avatar-ph" id="npcModalAvatarPh">👤</div>';
   ov.innerHTML='<div class="npc-modal">'
     +'<div class="npc-modal-top">'
-    +'<div class="npc-modal-avatar-wrap">'+avH+'<div class="npc-modal-img-hint">immagine da cartella npc/</div></div>'
+    +'<div class="npc-modal-avatar-wrap">'+avH+'<div class="npc-modal-img-hint">URL immagine (es. https://...)</div></div>'
     +'<div class="npc-modal-right">'
     +'<input class="npc-modal-name-inp" id="npcModalNome" placeholder="Nome NPC…" value="'+escHtml(n.nome)+'">'
-    +'<input class="npc-modal-img-inp" id="npcModalImg" placeholder="nome_file.jpg" value="'+escHtml(n.img)+'" oninput="npcPreviewImg(this.value)">'
+    +'<input class="npc-modal-img-inp" id="npcModalImg" placeholder="https://..." value="'+escHtml(n.img)+'" oninput="npcPreviewImg(this.value)">'
     +'<div class="npc-tags-edit" id="npcTagsEdit">'+tgH+'</div>'
     +'<div class="npc-tag-inp-wrap"><input class="npc-tag-inp" id="npcTagInp" placeholder="Aggiungi tag…" onkeydown="if(event.key===\'Enter\')npcAddTag()"><button class="npc-tag-add-btn" onclick="npcAddTag()">+ Tag</button></div>'
     +'</div></div>'
