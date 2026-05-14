@@ -28,11 +28,50 @@ body{background:var(--bg);color:var(--text);font-family:'Lora',Georgia,serif;fon
 .logo-t{font-family:'Cinzel Decorative',cursive;font-size:16px;font-weight:700;color:var(--silverh);letter-spacing:2px;}
 .logo-s{font-size:10px;letter-spacing:2px;color:var(--textd);font-family:'Cinzel',serif;text-transform:uppercase;margin-top:2px;}
 .hdr-badge{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold);border:1px solid var(--goldd);padding:4px 14px;text-transform:uppercase;}
+.gh-gear-btn{background:none;border:1px solid rgba(201,168,76,.2);color:rgba(201,168,76,.5);font-size:14px;width:32px;height:32px;border-radius:3px;cursor:pointer;margin-left:8px;transition:all .15s;flex-shrink:0;}
+.gh-gear-btn:hover{border-color:rgba(201,168,76,.5);color:var(--goldh);}
+
+/* ── FAB ── */
+#fabWrap{position:fixed;bottom:28px;left:28px;z-index:1000;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
+.fab-btn{
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(14,13,9,.95);
+  border:1px solid rgba(201,168,76,.4);
+  color:var(--goldd);font-size:20px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 16px rgba(201,168,76,.1);
+  transition:all .2s;
+}
+.fab-btn:hover{border-color:var(--goldd);box-shadow:0 4px 24px rgba(0,0,0,.7),0 0 20px rgba(201,168,76,.25);}
+.fab-btn.open{background:rgba(201,168,76,.15);border-color:var(--goldd);}
+.fab-menu{
+  display:flex;flex-direction:column;gap:8px;
+  pointer-events:none;opacity:0;
+  transform:translateY(10px);
+  transition:opacity .2s ease,transform .2s ease;
+}
+.fab-menu.open{pointer-events:all;opacity:1;transform:translateY(0);}
+.fab-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(14,13,9,.96);
+  border:1px solid rgba(201,168,76,.25);
+  border-radius:4px;padding:10px 16px;
+  cursor:pointer;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  transition:all .15s;
+}
+.fab-item:hover{border-color:rgba(201,168,76,.6);background:rgba(201,168,76,.08);}
+.fab-item-icon{font-size:15px;color:var(--goldd);}
+.fab-item-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--goldh);}
+.fab-item.danger .fab-item-icon{color:#e08080;}
+.fab-item.danger .fab-item-label{color:#e08080;}
+.fab-item.danger{border-color:rgba(192,57,43,.25);}
+.fab-item.danger:hover{border-color:rgba(192,57,43,.6);background:rgba(192,57,43,.08);}
 
 /* TABS */
 .tabs{background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;padding:0 24px;overflow-x:auto;position:sticky;top:var(--navh);z-index:200;}
 .tabs::-webkit-scrollbar{height:3px;}
-.tab{font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--textm);background:none;border:none;border-bottom:3px solid transparent;padding:15px 18px 12px;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s;}
+.tab{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--textm);background:none;border:none;border-bottom:3px solid transparent;padding:15px 12px 12px;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s;}
 .tab:hover{color:var(--silver);}
 .tab.on{color:var(--goldh);border-bottom-color:var(--gold);}
 
@@ -387,7 +426,7 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
 </head>
 <body>
 <script>
-var _originalSrc = null; // non più usato
+var _originalSrc = null;
 document.addEventListener('DOMContentLoaded', function(){
   // Bottoni Entra
   document.querySelectorAll('[data-char]').forEach(function(btn){
@@ -402,37 +441,133 @@ document.addEventListener('DOMContentLoaded', function(){
       if(e.key==='Enter') doLogin(inp.closest('.pc-card').id.replace('pc-',''));
     });
   });
+  // FAB
+  var fabBtn = document.getElementById('fabBtn');
+  if(fabBtn) fabBtn.addEventListener('click', fabToggle);
+  var fabGH = document.getElementById('fabGitHub');
+  if(fabGH) fabGH.addEventListener('click', function(){ fabAction('github'); });
+  var fabDis = document.getElementById('fabDisconnect');
+  if(fabDis) fabDis.addEventListener('click', function(){ fabAction('disconnect'); });
+  // Tab statici della guida — riassegna onclick via addEventListener
+  document.querySelectorAll('.tab[data-sec]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      show(btn.dataset.sec, btn);
+      if(btn.dataset.sec === 'mappa') setTimeout(initMap, 50);
+    });
+  });
 });
 </script>
 
 <script>
+/* ── Stubs e funzioni critiche pre-login ── */
+
+// Stubs lazy per funzioni definite tardi nel file
+function ghOpenCfg(cb){
+  if(window._ghOpenCfg) return window._ghOpenCfg(cb);
+  setTimeout(function(){ if(window._ghOpenCfg) window._ghOpenCfg(cb); }, 100);
+}
+function showPersonaggio(id){ if(window._showPersonaggio) window._showPersonaggio(id); }
+function showNPC(id){         if(window._showNPC)         window._showNPC(id); }
+function showAppunti(id){     if(window._showAppunti)     window._showAppunti(id); }
+function saveToFile(btn){     if(window._saveToFile)      window._saveToFile(btn); }
+
+// FAB
+var _fabOpen = false;
+var _currentCharId = null;
+
+function fabToggle(){
+  _fabOpen = !_fabOpen;
+  var b = document.getElementById('fabBtn');
+  var m = document.getElementById('fabMenu');
+  if(b) b.classList.toggle('open', _fabOpen);
+  if(m) m.classList.toggle('open', _fabOpen);
+}
+
+function fabAction(action){
+  _fabOpen = false;
+  var b = document.getElementById('fabBtn');
+  var m = document.getElementById('fabMenu');
+  if(b) b.classList.remove('open');
+  if(m) m.classList.remove('open');
+  if(action === 'github')     ghOpenCfg();
+  else if(action === 'disconnect') doDisconnect();
+}
+
+function doDisconnect(){
+  _currentCharId = null;
+  if(typeof pgData !== 'undefined') pgData = {};
+  if(typeof pgCurrentTab !== 'undefined') pgCurrentTab = {};
+  ['tab-spacer','tab-personaggio','tab-npc','tab-appunti'].forEach(function(tid){
+    var el = document.getElementById(tid); if(el) el.remove();
+  });
+  var d = document.getElementById('fabDisconnect');
+  if(d) d.style.display = 'none';
+  var badge = document.querySelector('.hdr-badge');
+  if(badge) badge.textContent = "Don’t Judge Me I’m Not an Adventurer";
+  document.querySelectorAll('.sec.on').forEach(function(s){ s.classList.remove('on'); });
+  document.querySelectorAll('.tab.on').forEach(function(b){ b.classList.remove('on'); });
+  var ft = document.querySelector('.tab'); if(ft) ft.classList.add('on');
+  var intro = document.getElementById('intro'); if(intro) intro.classList.add('on');
+  var hero = document.getElementById('introHero'); if(hero) hero.style.display = 'block';
+  var ls = document.getElementById('loginScreen');
+  if(ls){ ls.style.display = 'flex'; ls.style.opacity = '1'; }
+  document.querySelectorAll('.pc-pwd').forEach(function(i){ i.value = ''; });
+  document.querySelectorAll('.pc-err').forEach(function(e){ e.textContent = ''; });
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function _addPlayerTabs(id){
+  var nomi = {cal:'Cal', aurelio:'Aurelio', maily:'Maily', flack:'Flack'};
+  var nome = nomi[id] || id;
+  var badge = document.querySelector('.hdr-badge');
+  if(badge) badge.textContent = nome;
+  var tabs = document.querySelector('.tabs');
+  if(!tabs) return;
+  ['tab-spacer','tab-personaggio','tab-npc','tab-appunti'].forEach(function(tid){
+    var e = document.getElementById(tid); if(e) e.remove();
+  });
+  var spacer = document.createElement('div');
+  spacer.style.cssText = 'flex:1;';
+  spacer.id = 'tab-spacer';
+  tabs.appendChild(spacer);
+  [{id:'tab-personaggio',label:nome},{id:'tab-npc',label:'NPC'},{id:'tab-appunti',label:'Appunti'}].forEach(function(d){
+    var btn = document.createElement('button');
+    btn.className = 'tab'; btn.id = d.id; btn.textContent = d.label;
+    (function(did, cid){
+      btn.addEventListener('click', function(){
+        if(did==='tab-personaggio') showPersonaggio(cid);
+        else if(did==='tab-npc')   showNPC(cid);
+        else if(did==='tab-appunti') showAppunti(cid);
+      });
+    })(d.id, id);
+    tabs.appendChild(btn);
+  });
+}
+
 function doLogin(id){
-  var CHARS_PWD = {
-    cal:'SergiusBiggestDick',
-    aurelio:'SuperMariottide', 
-    maily:'CheccouzTheBest',
-    flack:'MiracoloPiemontesi'
-  };
-  var card = document.getElementById('pc-'+id);
-  if(!card) return;
-  var pwdInp = card.querySelector('.pc-pwd');
-  var err = card.querySelector('.pc-err');
-  if(pwdInp.value === CHARS_PWD[id]){
-    var screen = document.getElementById('loginScreen');
-    screen.style.display = 'none';
+  var pwd = {cal:'SergiusBiggestDick',aurelio:'SuperMariottide',maily:'CheccouzTheBest',flack:'MiracoloPiemontesi'};
+  var card = document.getElementById('pc-'+id); if(!card) return;
+  var inp  = card.querySelector('.pc-pwd');
+  var err  = card.querySelector('.pc-err');
+  if(inp.value === pwd[id]){
+    _currentCharId = id;
+    document.getElementById('loginScreen').style.display = 'none';
+    _addPlayerTabs(id);
     if(typeof initPlayerSession === 'function') initPlayerSession(id);
-    // Aggiungi .on subito in modo sincrono
+    var fd = document.getElementById('fabDisconnect'); if(fd) fd.style.display = 'flex';
     document.querySelectorAll('.sec').forEach(function(s){ s.classList.remove('on'); });
     document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('on'); });
-    var introSec = document.getElementById('intro');
-    if(introSec) introSec.classList.add('on');
-    document.querySelector('.tab').classList.add('on');
+    var intro = document.getElementById('intro'); if(intro) intro.classList.add('on');
+    var ft = document.querySelector('.tab'); if(ft) ft.classList.add('on');
     window.scrollTo({top:0, behavior:'instant'});
     if(typeof window._heroUpdate === 'function') window._heroUpdate();
+    setTimeout(function(){
+      var tn = document.querySelector('.tabs'); if(tn) tn.scrollLeft = tn.scrollWidth;
+    }, 50);
   } else {
     if(err) err.textContent = 'Password errata';
-    pwdInp.style.borderColor = '#c0392b';
-    setTimeout(function(){ if(err) err.textContent=''; pwdInp.style.borderColor='#3a3528'; }, 2000);
+    inp.style.borderColor = '#c0392b';
+    setTimeout(function(){ if(err) err.textContent=''; inp.style.borderColor='#3a3528'; }, 2000);
   }
 }
 </script>
@@ -517,7 +652,6 @@ function doLogin(id){
 .pc-card:hover .pc-bg{transform:scale(1.08);filter:blur(3px) brightness(0.7);}
 
 .pc-pwd:focus{border-color:rgba(201,168,76,0.6) !important;outline:none;}
-button:hover{background:rgba(201,168,76,0.1) !important;color:rgba(201,168,76,1) !important;}
 </style>
 
 
@@ -539,19 +673,33 @@ button:hover{background:rgba(201,168,76,0.1) !important;color:rgba(201,168,76,1)
     <div><div class="logo-t">Silverwind</div><div class="logo-s">Guida del Viandante</div></div>
   </div>
   <div class="hdr-badge">Don't Judge Me I'm Not an Adventurer</div>
-  <button id="ghCfgGear" onclick="ghOpenCfg()" title="Configurazione GitHub" style="background:none;border:1px solid rgba(201,168,76,.2);color:rgba(201,168,76,.5);font-size:14px;width:32px;height:32px;border-radius:3px;cursor:pointer;margin-left:8px;transition:all .15s;flex-shrink:0;" onmouseover="this.style.borderColor='rgba(201,168,76,.5)';this.style.color='var(--goldh)'" onmouseout="this.style.borderColor='rgba(201,168,76,.2)';this.style.color='rgba(201,168,76,.5)'">⚙</button>
 </header>
 
+<!-- ══ FAB MENU ══ -->
+<div id="fabWrap">
+  <div id="fabMenu" class="fab-menu">
+    <button class="fab-item" id="fabGitHub">
+      <span class="fab-item-icon">&#9729;</span>
+      <span class="fab-item-label">Configura GitHub</span>
+    </button>
+    <button class="fab-item danger" id="fabDisconnect" style="display:none;">
+      <span class="fab-item-icon">&#8594;</span>
+      <span class="fab-item-label">Disconnetti</span>
+    </button>
+  </div>
+  <button id="fabBtn" class="fab-btn" title="Impostazioni">&#9881;</button>
+</div>
+
 <nav class="tabs">
-  <button class="tab on"  onclick="show('intro',this)">Il Mondo</button>
-  <button class="tab"     onclick="show('mappa',this);setTimeout(initMap,50)">Mappa & Quartieri</button>
-  <button class="tab"     onclick="show('storia',this)">Storia</button>
-  <button class="tab"     onclick="show('eroi',this)">Gli Eroi</button>
-  <button class="tab"     onclick="show('fazioni',this)">Fazioni</button>
-  <button class="tab"     onclick="show('canyon',this)">Canyon & Deserto</button>
-  <button class="tab"     onclick="show('risonanza',this)">La Risonanza</button>
-  <button class="tab"     onclick="show('divinita',this)">Divinità</button>
-  <button class="tab"     onclick="show('lingue',this)">Lingue</button>
+  <button class="tab on"  data-sec="intro">Il Mondo</button>
+  <button class="tab"     data-sec="mappa">Mappa & Quartieri</button>
+  <button class="tab"     data-sec="storia">Storia</button>
+  <button class="tab"     data-sec="eroi">Gli Eroi</button>
+  <button class="tab"     data-sec="fazioni">Fazioni</button>
+  <button class="tab"     data-sec="canyon">Canyon & Deserto</button>
+  <button class="tab"     data-sec="risonanza">La Risonanza</button>
+  <button class="tab"     data-sec="divinita">Divinità</button>
+  <button class="tab"     data-sec="lingue">Lingue</button>
 </nav>
 
 <div id="introHero" style="display:block;position:relative;width:100%;height:80vh;min-height:560px;overflow:visible;background:transparent;">
@@ -860,6 +1008,7 @@ button:hover{background:rgba(201,168,76,0.1) !important;color:rgba(201,168,76,1)
         <div class="ilocs" id="i-locs" style="display:none;"></div>
       </div>
   </div>
+</div>
 </section>
 
 <!-- ══ STORIA ══ -->
@@ -2406,31 +2555,11 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 function initPlayerSession(id){
-  var nome = CHARS[id].nome;
-  var badge = document.querySelector('.hdr-badge');
-  if(badge) badge.textContent = nome;
-  var tabs = document.querySelector('.tabs');
-  if(tabs){
-    ['tab-spacer','tab-personaggio','tab-npc','tab-appunti'].forEach(function(tid){
-      var e = document.getElementById(tid); if(e) e.remove();
-    });
-    var spacer = document.createElement('div');
-    spacer.style.cssText = 'flex:1;';
-    spacer.id = 'tab-spacer';
-    tabs.appendChild(spacer);
-    var defs = [
-      {id:'tab-personaggio', label: nome,      fn: function(){ showPersonaggio(id); }},
-      {id:'tab-npc',         label: 'NPC',     fn: function(){ showNPC(id); }},
-      {id:'tab-appunti',     label: 'Appunti', fn: function(){ showAppunti(id); }}
-    ];
-    defs.forEach(function(d){
-      var btn = document.createElement('button');
-      btn.className = 'tab'; btn.id = d.id; btn.textContent = d.label;
-      btn.onclick = d.fn;
-      tabs.appendChild(btn);
-    });
+  try {
+    loadEmbeddedData();
+  } catch(e) {
+    console.error('initPlayerSession error:', e.message);
   }
-  loadEmbeddedData();
 }
 
 /* ══ PERSONAGGIO CSS — Fantasy Digital ══ */
@@ -3043,7 +3172,7 @@ var pgCurrentTab = {};
 function pgMod(v){ var m=Math.floor((v-10)/2); return (m>=0?'+':'')+m; }
 function pgModNum(v){ return Math.floor((v-10)/2); }
 
-function showPersonaggio(id){
+window._showPersonaggio = function(id){
   currentChar = id;
   var hero = document.getElementById('introHero');
   if(hero) hero.style.display='none';
@@ -4050,7 +4179,10 @@ function rissaTab(btn, manualeId, sec){
   if(target) target.classList.add('on');
 }
 
-function showNPC(id){
+/* ══ FAB MENU ══ */
+// fabToggle, fabAction, doDisconnect sono definiti nel blocco script iniziale
+
+window._showNPC = function(id){
   // Nascondi hero
   var hero = document.getElementById('introHero');
   if(hero) hero.style.display = 'none';
@@ -4514,7 +4646,7 @@ function ghToast(msg, type, duration){
   setTimeout(function(){ if(t.parentNode) t.remove(); }, duration||3000);
 }
 
-function ghOpenCfg(onSave){
+window._ghOpenCfg = function(onSave){
   var cfg = _ghCfg || {};
   var ov = document.createElement('div');
   ov.className = 'gh-cfg-overlay';
