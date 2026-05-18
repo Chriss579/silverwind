@@ -539,6 +539,10 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
       <span class="fab-item-icon">&#9729;</span>
       <span class="fab-item-label">Salva Dati</span>
     </button>
+    <button class="fab-item" id="fabChangeKey">
+      <span class="fab-item-icon">&#128273;</span>
+      <span class="fab-item-label">Cambia Chiave</span>
+    </button>
     <button class="fab-item danger" id="fabDisconnect" style="display:none;">
       <span class="fab-item-icon">&#8594;</span>
       <span class="fab-item-label">Disconnetti</span>
@@ -3824,7 +3828,7 @@ function npcCloseModal(){ var ov=document.getElementById('npcModalOv'); if(ov)ov
 /* ══ GITHUB SAVE SYSTEM ══ */
 /* ══ JSONBIN SAVE SYSTEM ══ */
 var JBIN = {
-  key: '$2a$10$IkzA0eEO3O6eWE5eqqB1Ne5JC.BFWXxiIfOIlyGSOsxh3MpxvS8KS',
+  key: null, // caricata dal localStorage
   bins: {
     cal:     '6a0ae8c8c0954111d83ea294',
     aurelio: '6a0ae904250b1311c369801e',
@@ -3833,6 +3837,40 @@ var JBIN = {
   },
   base: 'https://api.jsonbin.io/v3/b/'
 };
+
+function jbinLoadKey(){
+  try{ JBIN.key = localStorage.getItem('sw_jbin_key') || null; }catch(e){}
+}
+
+function jbinSaveKey(key){
+  JBIN.key = key;
+  try{ localStorage.setItem('sw_jbin_key', key); }catch(e){}
+}
+
+function jbinOpenSetup(onSuccess){
+  var ov = document.createElement('div');
+  ov.className = 'gh-cfg-overlay';
+  ov.innerHTML = '<div class="gh-cfg-box">'
+    +'<div class="gh-cfg-title">Accesso Silverwind</div>'
+    +'<div class="gh-cfg-sub" style="margin-bottom:18px;">Inserisci la chiave di accesso per abilitare il salvataggio dei dati. Richiesta una sola volta per dispositivo.</div>'
+    +'<div class="gh-cfg-lbl">Chiave di accesso</div>'
+    +'<input class="gh-cfg-inp" id="jbinKeyInp" type="password" placeholder="Chiave...">'
+    +'<div class="gh-cfg-row" style="margin-top:16px;">'
+    +'<button class="gh-cfg-btn-save" id="jbinKeyConfirm">Conferma</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  var inp = document.getElementById('jbinKeyInp');
+  if(inp) setTimeout(function(){ inp.focus(); }, 50);
+  function confirm(){
+    var key = (inp ? inp.value : '').trim();
+    if(!key){ ghToast('Inserisci la chiave.', 'err', 2000); return; }
+    jbinSaveKey(key);
+    ov.remove();
+    if(typeof onSuccess === 'function') onSuccess();
+  }
+  document.getElementById('jbinKeyConfirm').addEventListener('click', confirm);
+  if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') confirm(); });
+}
 
 function ghToast(msg, type, duration){
   var old = document.querySelector('.gh-toast');
@@ -3845,6 +3883,7 @@ function ghToast(msg, type, duration){
 }
 
 async function ghPush(btn){
+  if(!JBIN.key){ jbinOpenSetup(function(){ ghPush(btn); }); return; }
   if(!currentChar){ ghToast('Fai login prima di salvare.', 'err', 3000); return; }
   var charId = currentChar;
   var binId  = JBIN.bins[charId];
@@ -3892,6 +3931,7 @@ function saveToFile(btn){ ghPush(btn); }
 
 function loadEmbeddedData(){
   if(!currentChar) return;
+  if(!JBIN.key){ jbinOpenSetup(function(){ loadEmbeddedData(); }); return; }
   var charId = currentChar;
   var binId  = JBIN.bins[charId];
   if(!binId) return;
@@ -3947,7 +3987,8 @@ function fabAction(action){
   _fabOpen=false;
   var b=document.getElementById('fabBtn'); if(b) b.classList.remove('open');
   var m=document.getElementById('fabMenu'); if(m) m.classList.remove('open');
-  if(action==='github') ghPush(null);
+  if(action==='github')     ghPush(null);
+  else if(action==='changekey') jbinOpenSetup(function(){ ghToast('Chiave aggiornata.','ok',2000); });
   else if(action==='disconnect') doDisconnect();
 }
 
@@ -4092,8 +4133,11 @@ document.addEventListener('DOMContentLoaded',function(){
   if(fabBtn) fabBtn.addEventListener('click',fabToggle);
   var fabGH=document.getElementById('fabGitHub');
   if(fabGH) fabGH.addEventListener('click',function(){ fabAction('github'); });
+  var fabCK=document.getElementById('fabChangeKey');
+  if(fabCK) fabCK.addEventListener('click',function(){ fabAction('changekey'); });
   var fabDis=document.getElementById('fabDisconnect');
   if(fabDis) fabDis.addEventListener('click',function(){ fabAction('disconnect'); });
+  jbinLoadKey();
   document.querySelectorAll('.tab[data-sec]').forEach(function(btn){
     btn.addEventListener('click',function(){
       show(btn.dataset.sec,btn);
