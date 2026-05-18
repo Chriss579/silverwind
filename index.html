@@ -530,6 +530,7 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
     <div><div class="logo-t">Silverwind</div><div class="logo-s">Guida del Viandante</div></div>
   </div>
   <div class="hdr-badge">Don't Judge Me I'm Not an Adventurer</div>
+  <span id="unsavedIndicator" style="font-family:'Cinzel',serif;font-size:10px;color:rgba(201,168,76,.6);opacity:0;transition:opacity .3s;white-space:nowrap;margin-left:8px;" title="Modifiche non salvate">● non salvato</span>
 </header>
 
 <!-- ══ FAB MENU ══ -->
@@ -2767,7 +2768,7 @@ function pgRisorsaDelta(id,nome,delta,max){
   document.querySelectorAll('[data-risorsa-bar="'+nome+'"]').forEach(function(bar){ bar.style.width=(max>0?newCur/max*100:0)+'%'; });
 }
 
-function pgSaveNote(id,key,val){ pgEnsure(id); pgData[id][key]=val; }
+function pgSaveNote(id,key,val){ pgEnsure(id); pgData[id][key]=val; scheduleAutosave(); }
 
 function pgAddInvExtra(id){
   pgEnsure(id);
@@ -3532,6 +3533,7 @@ function appSave(){
   }
   appCloseModal();
   appRender(document.getElementById('appSearch').value);
+  scheduleAutosave();
 }
 
 function appDelete(){
@@ -3722,12 +3724,14 @@ function npcSave(){
     list.push({id:'npc_'+Date.now(),nome:nome,img:img,tags:tags,note:note});
   }
   npcCloseModal(); npcRender(document.getElementById('npcSearch').value);
+  scheduleAutosave();
 }
 
 function npcDelete(){
   if(!confirm('Eliminare questo NPC?'))return;
   npcData[npcCurrentChar]=(npcData[npcCurrentChar]||[]).filter(function(x){return x.id!==npcEditingId;});
   npcCloseModal(); npcRender(document.getElementById('npcSearch').value);
+  scheduleAutosave();
 }
 
 function npcCloseModal(){ var ov=document.getElementById('npcModalOv'); if(ov)ov.remove(); }
@@ -3933,6 +3937,24 @@ function buildUpdatedHtml(){
   return '<!DOCTYPE html>\n'+doc.documentElement.outerHTML;
 }
 
+var _ghLastSha = null;
+var _autosaveTimer = null;
+var _unsavedChanges = false;
+
+function scheduleAutosave(){
+  _unsavedChanges = true;
+  // Mostra indicatore modifiche non salvate
+  var ind = document.getElementById('unsavedIndicator');
+  if(ind) ind.style.opacity = '1';
+  // Debounce: salva dopo 4 secondi di inattività
+  if(_autosaveTimer) clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(function(){
+    if(_ghCfg && _ghCfg.token){
+      ghPush(null);
+    }
+  }, 4000);
+}
+
 async function ghPush(btn){
   ghLoadCfg();
   if(!_ghCfg || !_ghCfg.token){
@@ -3941,13 +3963,11 @@ async function ghPush(btn){
   }
   var cfg = _ghCfg;
   if(btn){ btn.disabled=true; btn.classList.add('saving'); }
-
   var safetyTimer = setTimeout(function(){
     if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
   }, 15000);
 
   try{
-    // Raccogli dati live dalla sessione corrente
     if(currentChar && document.getElementById('pg-hp-cur')){
       pgEnsure(currentChar);
       var hpEl=document.getElementById('pg-hp-cur'); if(hpEl) pgData[currentChar].hpCur=hpEl.value;
@@ -3955,96 +3975,76 @@ async function ghPush(btn){
       var obEl=document.getElementById('pg-ob-note'); if(obEl) pgData[currentChar].obNote=obEl.value;
     }
 
-    var apiBase = 'https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/data.json';
-    var headers = {
-      'Authorization': 'token '+cfg.token,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    };
+    var apiBase='https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/data.json';
+    var headers={'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
 
-    // 1. Leggi lo stato attuale dal server prima di salvare
-    var sha = null;
+    // Leggi stato server per merge (usa SHA in cache se disponibile)
+    var sha = _ghLastSha;
     var serverData = null;
     try{
-      var shaRes = await fetch(apiBase, {headers:headers, signal:AbortSignal.timeout(8000)});
+      var shaRes=await fetch(apiBase,{headers:headers,signal:AbortSignal.timeout(6000)});
       if(shaRes.ok){
-        var shaJson = await shaRes.json();
-        sha = shaJson.sha;
-        // Decodifica il contenuto attuale dal server
-        try{
-          var decoded = decodeURIComponent(escape(atob(shaJson.content.replace(/\n/g,''))));
-          serverData = JSON.parse(decoded);
-        }catch(e){ serverData = null; }
+        var shaJson=await shaRes.json();
+        sha=shaJson.sha; _ghLastSha=sha;
+        try{ serverData=JSON.parse(decodeURIComponent(escape(atob(shaJson.content.replace(/\n/g,''))))); }catch(e){}
       }
-    }catch(e){ /* prima volta o errore di rete */ }
+    }catch(e){}
 
-    // 2. Merge: i dati del server vincono per gli altri personaggi,
-    //    i dati locali vincono per il personaggio corrente
-    var mergedNpc       = serverData && serverData.npc       ? serverData.npc       : {};
-    var mergedAppunti   = serverData && serverData.appunti   ? serverData.appunti   : {};
-    var mergedPersonaggi= serverData && serverData.personaggi? serverData.personaggi: {};
-
-    // Sovrascrivi solo i dati del personaggio corrente con quelli locali
+    // Merge
+    var mN=serverData&&serverData.npc?serverData.npc:{};
+    var mA=serverData&&serverData.appunti?serverData.appunti:{};
+    var mP=serverData&&serverData.personaggi?serverData.personaggi:{};
     if(currentChar){
-      if(npcData[currentChar])        mergedNpc[currentChar]        = npcData[currentChar];
-      if(appuntiData[currentChar])    mergedAppunti[currentChar]    = appuntiData[currentChar];
-      if(pgData[currentChar])         mergedPersonaggi[currentChar] = pgData[currentChar];
+      if(npcData[currentChar])     mN[currentChar]=npcData[currentChar];
+      if(appuntiData[currentChar]) mA[currentChar]=appuntiData[currentChar];
+      if(pgData[currentChar])      mP[currentChar]=pgData[currentChar];
     } else {
-      // Nessun personaggio attivo — merge completo (DM che salva tutto)
-      Object.keys(npcData).forEach(function(k){ mergedNpc[k] = npcData[k]; });
-      Object.keys(appuntiData).forEach(function(k){ mergedAppunti[k] = appuntiData[k]; });
-      Object.keys(pgData).forEach(function(k){ mergedPersonaggi[k] = pgData[k]; });
+      Object.keys(npcData).forEach(function(k){ mN[k]=npcData[k]; });
+      Object.keys(appuntiData).forEach(function(k){ mA[k]=appuntiData[k]; });
+      Object.keys(pgData).forEach(function(k){ mP[k]=pgData[k]; });
     }
 
-    var merged = {npc:mergedNpc, appunti:mergedAppunti, personaggi:mergedPersonaggi};
-    var dataJson = JSON.stringify(merged, null, 0);
-    var base64 = btoa(unescape(encodeURIComponent(dataJson)));
+    var merged={npc:mN,appunti:mA,personaggi:mP};
+    var dataJson=JSON.stringify(merged,null,0);
+    var base64=btoa(unescape(encodeURIComponent(dataJson)));
+    var body={message:'dati '+(currentChar||'DM'),content:base64};
+    if(sha) body.sha=sha;
 
-    var body = {
-      message: 'dati campagna '+(currentChar||'DM')+' '+new Date().toLocaleString('it-IT'),
-      content: base64
-    };
-    if(sha) body.sha = sha;
+    // Risposta ottimistica immediata
+    npcData=mN; appuntiData=mA; pgData=mP;
+    _unsavedChanges = false;
+    var ind = document.getElementById('unsavedIndicator');
+    if(ind) ind.style.opacity = '0';
+    ghToast('\u2713 Salvato!','ok',2000);
+    if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
+    clearTimeout(safetyTimer);
 
-    var putRes = await fetch(apiBase, {
-      method: 'PUT',
-      headers: headers,
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(10000)
-    });
-
+    // Upload in background
+    var putRes=await fetch(apiBase,{method:'PUT',headers:headers,body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});
     if(!putRes.ok){
-      var putErr = await putRes.json();
-      throw new Error(putErr.message||'Errore upload: '+putRes.status);
-    }
-
-    // Aggiorna i dati locali con il merge effettuato
-    npcData     = mergedNpc;
-    appuntiData = mergedAppunti;
-    pgData      = mergedPersonaggi;
-
-    ghToast('✓ Salvato!', 'ok', 2500);
-
-  } catch(e){
-    console.error('ghPush error:', e);
-    if(e.message && (e.message.indexOf('401')>-1||e.message.indexOf('Bad credentials')>-1)){
-      ghToast('Token non valido — riconfigurazione necessaria.', 'err', 4000);
-      ghOpenCfg(function(){ ghPush(btn); });
-    } else if(e.message && e.message.indexOf('404')>-1){
-      ghToast('Repository non trovato. Controlla la configurazione.', 'err', 4000);
-    } else if(e.name==='TimeoutError'||(e.message&&e.message.indexOf('timeout')>-1)){
-      ghToast('Timeout — riprova tra qualche secondo.', 'err', 4000);
+      var putErr=await putRes.json();
+      ghToast('\u26a0 Errore upload: '+(putErr.message||putRes.status),'err',4000);
     } else {
-      ghToast('Errore: '+(e.message||'sconosciuto'), 'err', 4000);
+      try{ var pd=await putRes.json(); if(pd.content&&pd.content.sha) _ghLastSha=pd.content.sha; }catch(e){}
     }
-  } finally {
+
+  }catch(e){
     clearTimeout(safetyTimer);
     if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
+    console.error('ghPush:',e);
+    if(e.message&&(e.message.indexOf('401')>-1||e.message.indexOf('Bad credentials')>-1)){
+      ghToast('Token non valido.','err',4000); ghOpenCfg(function(){ ghPush(btn); });
+    } else if(e.name==='TimeoutError'||(e.message&&e.message.indexOf('timeout')>-1)){
+      ghToast('Timeout — dati salvati localmente.','err',4000);
+    } else {
+      ghToast('Errore: '+(e.message||'sconosciuto'),'err',4000);
+    }
   }
 }
 
 function saveToGitHub(btn){ ghPush(btn); }
-function saveToFile(btn){ saveToGitHub(btn); }
+function saveToFile(btn){ ghPush(btn); }
+
 
 function loadEmbeddedData(){
   // Prima prova a caricare da data.json (salvataggio rapido)
