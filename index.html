@@ -530,7 +530,6 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
     <div><div class="logo-t">Silverwind</div><div class="logo-s">Guida del Viandante</div></div>
   </div>
   <div class="hdr-badge">Don't Judge Me I'm Not an Adventurer</div>
-  <span id="unsavedIndicator" style="font-family:'Cinzel',serif;font-size:10px;color:rgba(201,168,76,.6);opacity:0;transition:opacity .3s;white-space:nowrap;margin-left:8px;" title="Modifiche non salvate">● non salvato</span>
 </header>
 
 <!-- ══ FAB MENU ══ -->
@@ -538,7 +537,7 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
   <div id="fabMenu" class="fab-menu">
     <button class="fab-item" id="fabGitHub">
       <span class="fab-item-icon">&#9729;</span>
-      <span class="fab-item-label">Configura GitHub</span>
+      <span class="fab-item-label">Salva Dati</span>
     </button>
     <button class="fab-item danger" id="fabDisconnect" style="display:none;">
       <span class="fab-item-icon">&#8594;</span>
@@ -1501,7 +1500,7 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
   <div class="npc-header">
     <input class="npc-search" id="npcSearch" type="text" placeholder="Cerca per nome o tag…" oninput="npcFilter()">
     <button class="npc-add-btn" data-action="npc-new">+ Aggiungi NPC</button>
-    <button class="npc-add-btn gh-save-btn" data-action="save" style="border-color:rgba(201,168,76,0.4);">&#9729; Salva su GitHub<span class="gh-spin"></span></button>
+    <button class="npc-add-btn gh-save-btn" data-action="save" style="border-color:rgba(201,168,76,0.4);">&#9729; Salva<span class="gh-spin"></span></button>
   </div>
 
   <div class="npc-grid" id="npcGrid"></div>
@@ -1524,7 +1523,7 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
   <div class="app-header">
     <input class="app-search" id="appSearch" type="text" placeholder="Cerca per titolo o contenuto…" oninput="appFilter()">
     <button class="app-add-btn" data-action="app-new">+ Nuovo Appunto</button>
-    <button class="app-add-btn gh-save-btn" data-action="save" style="border-color:rgba(201,168,76,0.4);">&#9729; Salva su GitHub<span class="gh-spin"></span></button>
+    <button class="app-add-btn gh-save-btn" data-action="save" style="border-color:rgba(201,168,76,0.4);">&#9729; Salva<span class="gh-spin"></span></button>
   </div>
   <div class="app-grid" id="appGrid"></div>
 </section>
@@ -2633,7 +2632,7 @@ function pgRender(id){
     +'<button class="pg-add-btn" style="margin-top:16px;" onclick="pgMagNew(\''+id+'\')">+ Aggiungi al Magazzino</button>'
     +'</div>'
     +'<div style="text-align:center;margin-top:6px;">'
-    +'<button class="gh-save-btn" data-action="save" style="padding:9px 28px;">&#9729; Salva su GitHub<span class="gh-spin"></span></button>'
+    +'<button class="gh-save-btn" data-action="save" style="padding:9px 28px;">&#9729; Salva<span class="gh-spin"></span></button>'
     +'</div>';
 
 
@@ -2768,7 +2767,7 @@ function pgRisorsaDelta(id,nome,delta,max){
   document.querySelectorAll('[data-risorsa-bar="'+nome+'"]').forEach(function(bar){ bar.style.width=(max>0?newCur/max*100:0)+'%'; });
 }
 
-function pgSaveNote(id,key,val){ pgEnsure(id); pgData[id][key]=val; scheduleAutosave(); }
+function pgSaveNote(id,key,val){ pgEnsure(id); pgData[id][key]=val; }
 
 function pgAddInvExtra(id){
   pgEnsure(id);
@@ -3533,7 +3532,7 @@ function appSave(){
   }
   appCloseModal();
   appRender(document.getElementById('appSearch').value);
-  scheduleAutosave();
+ 
 }
 
 function appDelete(){
@@ -3724,14 +3723,14 @@ function npcSave(){
     list.push({id:'npc_'+Date.now(),nome:nome,img:img,tags:tags,note:note});
   }
   npcCloseModal(); npcRender(document.getElementById('npcSearch').value);
-  scheduleAutosave();
+ 
 }
 
 function npcDelete(){
   if(!confirm('Eliminare questo NPC?'))return;
   npcData[npcCurrentChar]=(npcData[npcCurrentChar]||[]).filter(function(x){return x.id!==npcEditingId;});
   npcCloseModal(); npcRender(document.getElementById('npcSearch').value);
-  scheduleAutosave();
+ 
 }
 
 function npcCloseModal(){ var ov=document.getElementById('npcModalOv'); if(ov)ov.remove(); }
@@ -3823,19 +3822,17 @@ function npcCloseModal(){ var ov=document.getElementById('npcModalOv'); if(ov)ov
 })();
 
 /* ══ GITHUB SAVE SYSTEM ══ */
-var _ghCfg = null; // { owner, repo, token, path }
-
-function ghLoadCfg(){
-  try{
-    var raw = localStorage.getItem('sw_gh_cfg');
-    if(raw) _ghCfg = JSON.parse(raw);
-  }catch(e){}
-}
-
-function ghSaveCfg(cfg){
-  _ghCfg = cfg;
-  try{ localStorage.setItem('sw_gh_cfg', JSON.stringify(cfg)); }catch(e){}
-}
+/* ══ JSONBIN SAVE SYSTEM ══ */
+var JBIN = {
+  key: '$2a$10$IkzA0eEO3O6eWE5eqqB1Ne5JC.BFWXxiIfOIlyGSOsxh3MpxvS8KS',
+  bins: {
+    cal:     '6a0ae8c8c0954111d83ea294',
+    aurelio: '6a0ae904250b1311c369801e',
+    maily:   '6a0ae94e250b1311c3698219',
+    flack:   '6a0ae9a9adc21f119ab97029'
+  },
+  base: 'https://api.jsonbin.io/v3/b/'
+};
 
 function ghToast(msg, type, duration){
   var old = document.querySelector('.gh-toast');
@@ -3847,245 +3844,72 @@ function ghToast(msg, type, duration){
   setTimeout(function(){ if(t.parentNode) t.remove(); }, duration||3000);
 }
 
-function _ghOpenCfgReal(onSave){
-  var cfg = _ghCfg || {};
-  var ov = document.createElement('div');
-  ov.className = 'gh-cfg-overlay';
-  ov.innerHTML =
-    '<div class="gh-cfg-box">'
-    +'<div class="gh-cfg-title">Configurazione GitHub</div>'
-    +'<div class="gh-cfg-sub">Inserisci i dati del tuo repository per salvare direttamente online. Il token viene memorizzato solo nel browser, mai caricato da nessuna parte.<br><br>'
-    +'Crea un token su <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a> con permesso <strong>repo</strong> (o <strong>public_repo</strong>).</div>'
-    +'<div class="gh-cfg-lbl">Username GitHub</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgOwner" placeholder="es. tuousername" value="'+escHtml(cfg.owner||'')+'">'
-    +'<div class="gh-cfg-lbl">Nome Repository</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgRepo" placeholder="es. silverwind" value="'+escHtml(cfg.repo||'')+'">'
-    +'<div class="gh-cfg-lbl">Nome file (di solito index.html)</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgPath" placeholder="index.html" value="'+escHtml(cfg.path||'index.html')+'">'
-    +'<div class="gh-cfg-lbl">Personal Access Token</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgToken" type="password" placeholder="ghp_…" value="'+escHtml(cfg.token||'')+'">'
-    +'<div class="gh-cfg-note">Il token è sensibile — non condividerlo con nessuno.</div>'
-    +'<div class="gh-cfg-row">'
-    +'<button class="gh-cfg-btn-cancel" id="ghCfgCancel">Annulla</button>'
-    +'<button class="gh-cfg-btn-save" id="ghCfgConfirm">Salva Configurazione</button>'
-    +'</div></div>';
-
-  document.body.appendChild(ov);
-  document.getElementById('ghCfgCancel').onclick = function(){ ov.remove(); };
-  document.getElementById('ghCfgConfirm').onclick = function(){
-    var owner = document.getElementById('ghCfgOwner').value.trim();
-    var repo  = document.getElementById('ghCfgRepo').value.trim();
-    var path  = document.getElementById('ghCfgPath').value.trim() || 'index.html';
-    var token = document.getElementById('ghCfgToken').value.trim();
-    if(!owner || !repo || !token){
-      ghToast('Compila tutti i campi obbligatori.', 'err', 3000);
-      return;
-    }
-    ghSaveCfg({owner:owner, repo:repo, path:path, token:token});
-    ov.remove();
-    ghToast('Configurazione salvata.', 'ok', 2000);
-    if(typeof onSave === 'function') onSave();
-  };
-  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
-  // Focus sul primo campo vuoto
-  setTimeout(function(){
-    var first = ov.querySelector('.gh-cfg-inp:not([value]):not([value=""]), .gh-cfg-inp[value=""]');
-    if(first) first.focus();
-  },50);
-}
-
-function buildUpdatedHtml(){
-  // Raccogli dati live dalla scheda aperta
-  if(currentChar && document.getElementById('pg-hp-cur')){
-    pgEnsure(currentChar);
-    var hpEl=document.getElementById('pg-hp-cur');
-    if(hpEl) pgData[currentChar].hpCur=hpEl.value;
-    var bgEl=document.getElementById('pg-bg-note');
-    if(bgEl) pgData[currentChar].bgNote=bgEl.value;
-    var obEl=document.getElementById('pg-ob-note');
-    if(obEl) pgData[currentChar].obNote=obEl.value;
-  }
-  var dataJson = JSON.stringify({npc:npcData, appunti:appuntiData, personaggi:pgData});
-
-  // Aggiorna pdataContainer nel DOM PRIMA di prendere outerHTML
-  var container = document.getElementById('pdataContainer');
-  if(container) container.textContent = 'var EMBEDDED_DATA='+dataJson+';';
-
-  // Prendi outerHTML dopo l'aggiornamento
-  var src = document.documentElement.outerHTML;
-
-  // Assicurati che pdataContainer sia nel sorgente con i dati corretti
-  // (alcuni browser non includono textContent degli script nell'outerHTML)
-  var pdata_tag = '<script id="pdataContainer">var EMBEDDED_DATA='+dataJson+';<\/script>';
-  src = src.replace(/<script id="pdataContainer"[^>]*>[\s\S]*?<\/script>/, pdata_tag);
-
-  var parser = new DOMParser();
-  var doc = parser.parseFromString(src, 'text/html');
-
-  // Pulisci elementi dinamici
-  ['tab-spacer','tab-personaggio','tab-npc','tab-appunti'].forEach(function(id){
-    var el=doc.getElementById(id); if(el) el.remove();
-  });
-  var ls=doc.getElementById('loginScreen');
-  if(ls) ls.style.cssText=ls.style.cssText.replace('display: none','display: flex').replace('opacity: 0','opacity: 1');
-  doc.querySelectorAll('.sec.on').forEach(function(s){ s.classList.remove('on'); });
-  doc.querySelectorAll('.tab.on').forEach(function(b){ b.classList.remove('on'); });
-  var firstTab=doc.querySelector('.tab'); if(firstTab) firstTab.classList.add('on');
-  var heroEl=doc.getElementById('introHero'); if(heroEl) heroEl.style.display='block';
-  doc.querySelectorAll('.gh-cfg-overlay,.gh-toast,.pg-mag-modal-overlay').forEach(function(el){ el.remove(); });
-
-  return '<!DOCTYPE html>\n'+doc.documentElement.outerHTML;
-}
-
-var _ghLastSha = null;
-var _autosaveTimer = null;
-var _unsavedChanges = false;
-
-function scheduleAutosave(){
-  _unsavedChanges = true;
-  // Mostra indicatore modifiche non salvate
-  var ind = document.getElementById('unsavedIndicator');
-  if(ind) ind.style.opacity = '1';
-  // Debounce: salva dopo 4 secondi di inattività
-  if(_autosaveTimer) clearTimeout(_autosaveTimer);
-  _autosaveTimer = setTimeout(function(){
-    if(_ghCfg && _ghCfg.token){
-      ghPush(null);
-    }
-  }, 4000);
-}
-
 async function ghPush(btn){
-  ghLoadCfg();
-  if(!_ghCfg || !_ghCfg.token){
-    ghOpenCfg(function(){ ghPush(btn); });
-    return;
-  }
-  var cfg = _ghCfg;
+  if(!currentChar){ ghToast('Fai login prima di salvare.', 'err', 3000); return; }
+  var charId = currentChar;
+  var binId  = JBIN.bins[charId];
+  if(!binId){ ghToast('Bin non trovato.', 'err', 3000); return; }
+
   if(btn){ btn.disabled=true; btn.classList.add('saving'); }
-  var safetyTimer = setTimeout(function(){
-    if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
-  }, 15000);
+  var safety = setTimeout(function(){ if(btn){ btn.disabled=false; btn.classList.remove('saving'); } }, 12000);
 
   try{
-    if(currentChar && document.getElementById('pg-hp-cur')){
-      pgEnsure(currentChar);
-      var hpEl=document.getElementById('pg-hp-cur'); if(hpEl) pgData[currentChar].hpCur=hpEl.value;
-      var bgEl=document.getElementById('pg-bg-note'); if(bgEl) pgData[currentChar].bgNote=bgEl.value;
-      var obEl=document.getElementById('pg-ob-note'); if(obEl) pgData[currentChar].obNote=obEl.value;
+    if(document.getElementById('pg-hp-cur')){
+      pgEnsure(charId);
+      var hpEl=document.getElementById('pg-hp-cur'); if(hpEl) pgData[charId].hpCur=hpEl.value;
+      var bgEl=document.getElementById('pg-bg-note'); if(bgEl) pgData[charId].bgNote=bgEl.value;
+      var obEl=document.getElementById('pg-ob-note'); if(obEl) pgData[charId].obNote=obEl.value;
     }
 
-    var apiBase='https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/data.json';
-    var headers={'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+    var payload = {
+      npc:         npcData[charId]     || [],
+      appunti:     appuntiData[charId] || [],
+      personaggio: pgData[charId]      || {}
+    };
 
-    // Leggi stato server per merge (usa SHA in cache se disponibile)
-    var sha = _ghLastSha;
-    var serverData = null;
-    try{
-      var shaRes=await fetch(apiBase,{headers:headers,signal:AbortSignal.timeout(6000)});
-      if(shaRes.ok){
-        var shaJson=await shaRes.json();
-        sha=shaJson.sha; _ghLastSha=sha;
-        try{ serverData=JSON.parse(decodeURIComponent(escape(atob(shaJson.content.replace(/\n/g,''))))); }catch(e){}
-      }
-    }catch(e){}
-
-    // Merge
-    var mN=serverData&&serverData.npc?serverData.npc:{};
-    var mA=serverData&&serverData.appunti?serverData.appunti:{};
-    var mP=serverData&&serverData.personaggi?serverData.personaggi:{};
-    if(currentChar){
-      if(npcData[currentChar])     mN[currentChar]=npcData[currentChar];
-      if(appuntiData[currentChar]) mA[currentChar]=appuntiData[currentChar];
-      if(pgData[currentChar])      mP[currentChar]=pgData[currentChar];
-    } else {
-      Object.keys(npcData).forEach(function(k){ mN[k]=npcData[k]; });
-      Object.keys(appuntiData).forEach(function(k){ mA[k]=appuntiData[k]; });
-      Object.keys(pgData).forEach(function(k){ mP[k]=pgData[k]; });
-    }
-
-    var merged={npc:mN,appunti:mA,personaggi:mP};
-    var dataJson=JSON.stringify(merged,null,0);
-    var base64=btoa(unescape(encodeURIComponent(dataJson)));
-    var body={message:'dati '+(currentChar||'DM'),content:base64};
-    if(sha) body.sha=sha;
-
-    // Risposta ottimistica immediata
-    npcData=mN; appuntiData=mA; pgData=mP;
-    _unsavedChanges = false;
-    var ind = document.getElementById('unsavedIndicator');
-    if(ind) ind.style.opacity = '0';
-    ghToast('\u2713 Salvato!','ok',2000);
+    ghToast('\u2713 Salvato!', 'ok', 2000);
     if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
-    clearTimeout(safetyTimer);
+    clearTimeout(safety);
 
-    // Upload in background
-    var putRes=await fetch(apiBase,{method:'PUT',headers:headers,body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});
-    if(!putRes.ok){
-      var putErr=await putRes.json();
-      ghToast('\u26a0 Errore upload: '+(putErr.message||putRes.status),'err',4000);
-    } else {
-      try{ var pd=await putRes.json(); if(pd.content&&pd.content.sha) _ghLastSha=pd.content.sha; }catch(e){}
-    }
+    fetch(JBIN.base + binId, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json','X-Master-Key':JBIN.key},
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000)
+    }).then(function(r){
+      if(!r.ok) r.json().then(function(e){ ghToast('\u26a0 Errore: '+(e.message||r.status), 'err', 4000); });
+    }).catch(function(){ ghToast('Timeout — riprova.', 'err', 3000); });
 
   }catch(e){
-    clearTimeout(safetyTimer);
+    clearTimeout(safety);
     if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
-    console.error('ghPush:',e);
-    if(e.message&&(e.message.indexOf('401')>-1||e.message.indexOf('Bad credentials')>-1)){
-      ghToast('Token non valido.','err',4000); ghOpenCfg(function(){ ghPush(btn); });
-    } else if(e.name==='TimeoutError'||(e.message&&e.message.indexOf('timeout')>-1)){
-      ghToast('Timeout — dati salvati localmente.','err',4000);
-    } else {
-      ghToast('Errore: '+(e.message||'sconosciuto'),'err',4000);
-    }
+    ghToast('Errore: '+(e.message||'sconosciuto'), 'err', 4000);
   }
 }
 
 function saveToGitHub(btn){ ghPush(btn); }
 function saveToFile(btn){ ghPush(btn); }
 
-
 function loadEmbeddedData(){
-  // Prima prova a caricare da data.json (salvataggio rapido)
-  // Usa un URL relativo che funziona sia su GitHub Pages che in locale
-  var dataUrl = 'data.json';
-  fetch(dataUrl, {cache:'no-store'})
-    .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(data){
-      if(data){
-        if(data.npc)        npcData     = data.npc;
-        if(data.appunti)    appuntiData = data.appunti;
-        if(data.personaggi) pgData      = data.personaggi;
-      }
-    })
-    .catch(function(){
-      // Fallback: leggi da pdataContainer embedded
-      try{
-        var el = document.getElementById('pdataContainer');
-        if(el && el.textContent && el.textContent.trim() && el.textContent.trim() !== 'var EMBEDDED_DATA={};'){
-          var raw = el.textContent.replace('var EMBEDDED_DATA=','').replace(/;$/,'');
-          var data = JSON.parse(raw);
-          if(data.npc)        npcData     = data.npc;
-          if(data.appunti)    appuntiData = data.appunti;
-          if(data.personaggi) pgData      = data.personaggi;
-        }
-      }catch(e){ console.log('loadEmbeddedData fallback error:', e.message); }
-    });
-  // Leggi anche dal pdataContainer subito (sincrono) come backup immediato
-  try{
-    var el = document.getElementById('pdataContainer');
-    if(el && el.textContent && el.textContent.trim() && el.textContent.trim() !== 'var EMBEDDED_DATA={};'){
-      var raw = el.textContent.replace('var EMBEDDED_DATA=','').replace(/;$/,'');
-      var data = JSON.parse(raw);
-      if(data.npc)        npcData     = data.npc;
-      if(data.appunti)    appuntiData = data.appunti;
-      if(data.personaggi) pgData      = data.personaggi;
-    }
-  }catch(e){}
+  if(!currentChar) return;
+  var charId = currentChar;
+  var binId  = JBIN.bins[charId];
+  if(!binId) return;
+  fetch(JBIN.base + binId + '/latest', {
+    headers: {'X-Master-Key': JBIN.key},
+    signal: AbortSignal.timeout(6000)
+  })
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(res){
+    if(!res || !res.record) return;
+    var d = res.record;
+    if(d.npc)         npcData[charId]     = d.npc;
+    if(d.appunti)     appuntiData[charId] = d.appunti;
+    if(d.personaggio) pgData[charId]      = d.personaggio;
+  })
+  .catch(function(){});
 }
 
-loadEmbeddedData();
 
 // Inizializza tutte le immagini dal blocco IMGS
 (function initImgs(){
@@ -4123,7 +3947,7 @@ function fabAction(action){
   _fabOpen=false;
   var b=document.getElementById('fabBtn'); if(b) b.classList.remove('open');
   var m=document.getElementById('fabMenu'); if(m) m.classList.remove('open');
-  if(action==='github') ghOpenCfg();
+  if(action==='github') ghPush(null);
   else if(action==='disconnect') doDisconnect();
 }
 
@@ -4251,40 +4075,7 @@ function _doLoginSession(id){
   setTimeout(function(){ var tn=document.querySelector('.tabs'); if(tn) tn.scrollLeft=tn.scrollWidth; },50);
 }
 
-function ghOpenCfg(onSave){
-  var cfg=_ghCfg||{};
-  var ov=document.createElement('div');
-  ov.className='gh-cfg-overlay';
-  ov.innerHTML='<div class="gh-cfg-box">'
-    +'<div class="gh-cfg-title">Configurazione GitHub</div>'
-    +'<div class="gh-cfg-sub">Token con permesso <strong>public_repo</strong> da github.com/settings/tokens</div>'
-    +'<div class="gh-cfg-lbl">Username GitHub</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgOwner" placeholder="tuousername" value="'+escHtml(cfg.owner||'')+'">'
-    +'<div class="gh-cfg-lbl">Nome Repository</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgRepo" placeholder="silverwind" value="'+escHtml(cfg.repo||'')+'">'
-    +'<div class="gh-cfg-lbl">Nome file</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgPath" placeholder="index.html" value="'+escHtml(cfg.path||'index.html')+'">'
-    +'<div class="gh-cfg-lbl">Personal Access Token</div>'
-    +'<input class="gh-cfg-inp" id="ghCfgToken" type="password" placeholder="ghp_..." value="'+escHtml(cfg.token||'')+'">'
-    +'<div class="gh-cfg-row">'
-    +'<button class="gh-cfg-btn-cancel" id="ghCfgCancel">Annulla</button>'
-    +'<button class="gh-cfg-btn-save" id="ghCfgConfirm">Salva</button>'
-    +'</div></div>';
-  document.body.appendChild(ov);
-  document.getElementById('ghCfgCancel').addEventListener('click',function(){ ov.remove(); });
-  document.getElementById('ghCfgConfirm').addEventListener('click',function(){
-    var owner=(document.getElementById('ghCfgOwner').value||'').trim();
-    var repo=(document.getElementById('ghCfgRepo').value||'').trim();
-    var path=(document.getElementById('ghCfgPath').value||'index.html').trim();
-    var token=(document.getElementById('ghCfgToken').value||'').trim();
-    if(!owner||!repo||!token){ ghToast('Compila tutti i campi.','err'); return; }
-    ghSaveCfg({owner:owner,repo:repo,path:path,token:token});
-    ov.remove();
-    ghToast('Configurazione salvata.','ok',2000);
-    if(typeof onSave==='function') onSave();
-  });
-  ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
-}
+function ghOpenCfg(cb){ if(typeof cb==='function') cb(); }
 
 function saveToFile(btn){ ghPush(btn); }
 
@@ -4338,7 +4129,6 @@ document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('[data-action="save"]').forEach(function(btn){
     btn.addEventListener('click',function(){ saveToFile(this); });
   });
-  ghLoadCfg();
   loadEmbeddedData();
   // Ripristina sessione salvata (login automatico al reload)
   try{
