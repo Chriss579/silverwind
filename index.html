@@ -3910,6 +3910,9 @@ async function ghPush(btn){
     if(btn){ btn.disabled=false; btn.classList.remove('saving'); }
     clearTimeout(safety);
 
+    // Aggiorna cache locale subito
+    try{ localStorage.setItem(_cacheKey(charId), JSON.stringify(payload)); }catch(e){}
+
     fetch(JBIN.base + binId, {
       method: 'PUT',
       headers: {'Content-Type':'application/json','X-Master-Key':JBIN.key},
@@ -3929,12 +3932,44 @@ async function ghPush(btn){
 function saveToGitHub(btn){ ghPush(btn); }
 function saveToFile(btn){ ghPush(btn); }
 
+function _cacheKey(charId){ return 'sw_cache_'+charId; }
+
+function _applyData(charId, d){
+  if(d.npc)         npcData[charId]     = d.npc;
+  if(d.appunti)     appuntiData[charId] = d.appunti;
+  if(d.personaggio) pgData[charId]      = d.personaggio;
+}
+
+function _refreshUI(charId){
+  // Aggiorna UI se le sezioni sono già aperte
+  if(document.getElementById('sec-npc') && document.getElementById('sec-npc').classList.contains('on')){
+    if(typeof npcRender==='function') npcRender('');
+  }
+  if(document.getElementById('sec-appunti') && document.getElementById('sec-appunti').classList.contains('on')){
+    if(typeof appRender==='function') appRender('');
+  }
+  if(document.getElementById('sec-personaggio') && document.getElementById('sec-personaggio').classList.contains('on')){
+    if(typeof pgRender==='function') pgRender(charId);
+  }
+}
+
 function loadEmbeddedData(){
   if(!currentChar) return;
   if(!JBIN.key){ jbinOpenSetup(function(){ loadEmbeddedData(); }); return; }
   var charId = currentChar;
   var binId  = JBIN.bins[charId];
   if(!binId) return;
+
+  // 1. Carica subito dalla cache locale (zero attesa)
+  try{
+    var cached = localStorage.getItem(_cacheKey(charId));
+    if(cached){
+      var d = JSON.parse(cached);
+      _applyData(charId, d);
+    }
+  }catch(e){}
+
+  // 2. Aggiorna in background dal server
   fetch(JBIN.base + binId + '/latest', {
     headers: {'X-Master-Key': JBIN.key},
     signal: AbortSignal.timeout(6000)
@@ -3943,9 +3978,11 @@ function loadEmbeddedData(){
   .then(function(res){
     if(!res || !res.record) return;
     var d = res.record;
-    if(d.npc)         npcData[charId]     = d.npc;
-    if(d.appunti)     appuntiData[charId] = d.appunti;
-    if(d.personaggio) pgData[charId]      = d.personaggio;
+    _applyData(charId, d);
+    // Salva in cache per il prossimo login
+    try{ localStorage.setItem(_cacheKey(charId), JSON.stringify(d)); }catch(e){}
+    // Aggiorna UI se ci sono novità
+    _refreshUI(charId);
   })
   .catch(function(){});
 }
