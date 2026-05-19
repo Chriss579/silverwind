@@ -2373,20 +2373,19 @@ function initPlayerSession(id){
       line-height:1.6; border:none; margin-bottom:10px;
     }
     /* ── caratteristiche + TS affiancati ── */
-    .pg-stats-ts-wrap { display:flex; flex-direction:row; align-items:start; gap:0; }
-    .pg-stats-col { flex:1; padding:4px 12px 4px 4px; }
-    .pg-ts-col { flex:1; padding:4px 4px 4px 12px; }
+    .pg-stats-ts-wrap { display:grid; grid-template-columns:1fr auto 1fr; gap:0; align-items:start; }
+    .pg-ts-col { padding:0 0 0 16px; }
     .pg-stats-col-title {
       font-family:'Cinzel',serif; font-size:9px; letter-spacing:2px;
       text-transform:uppercase; color:rgba(201,168,76,.5);
-      margin-bottom:10px; padding-bottom:6px;
+      margin-bottom:10px;
     }
     /* divisore verticale fade dorato */
     .pg-stats-divider {
-      width:1px; align-self:stretch; flex-shrink:0;
+      width:1px; align-self:stretch;
       background:linear-gradient(to bottom, transparent 0%, rgba(201,168,76,.4) 20%, rgba(201,168,76,.4) 80%, transparent 100%);
+      margin:0 12px;
     }
-    .pg-stats-ts-wrap .pg-block-title { display:none; }
     /* ritratto grande */
     .pg-scheda-left .pg-portrait-wrap { width:280px; height:380px; }
     .pg-scheda-left .pg-portrait { width:280px; height:380px; border-radius:6px; }
@@ -2401,10 +2400,8 @@ function initPlayerSession(id){
     .pg-combat-block { width:100%; }
     .pg-combat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 
-    /* ── caratteristiche + TS affiancati ── */
-    .pg-stats-ts-wrap { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:start; }
-    /* stat verticali: 1 colonna */
-    .pg-stat-row-vert { display:grid; grid-template-columns:1fr; gap:6px; }
+
+
 
     /* TS list */
     .pg-ts-list { display:flex; flex-direction:column; gap:4px; min-width:120px; padding:4px 0; }
@@ -2650,12 +2647,15 @@ function pgRender(id){
     +'</div>'
     // ── COLONNA DESTRA ──
     +'<div class="pg-scheda-right">'
-    // Caratteristiche + TS
+    // Caratteristiche + TS affiancati
     +'<div class="pg-block">'
+    +'<div class="pg-stats-ts-wrap">'
     +'<div class="pg-stat-row">'+statsHtml+'</div>'
-    +'<div class="pg-save-legend">'
-    +'<span><span style="width:7px;height:7px;border-radius:50%;background:var(--goldd);box-shadow:0 0 6px rgba(201,168,76,.5);display:inline-block;"></span>TS Competente</span>'
-    +'<span><span style="width:7px;height:7px;border-radius:50%;border:1px solid rgba(201,168,76,.3);display:inline-block;"></span>TS Non comp.</span>'
+    +'<div class="pg-stats-divider"></div>'
+    +'<div class="pg-ts-col">'
+    +'<div class="pg-stats-col-title">Tiri Salvezza</div>'
+    +'<div class="pg-ts-list">'+tsHtml+'</div>'
+    +'</div>'
     +'</div></div>'
     // Abilità
     +skillHtml
@@ -2798,8 +2798,9 @@ function pgRender(id){
   document.getElementById('pg-content').innerHTML =
     '<div class="pg-tabs">'
     +['scheda','inventario','abilita','backstory','rissa'].map(function(t,i){
-      var labels=['Scheda','Inventario','Abilità','Backstory','🥊 Rissa'];
-      return '<button class="pg-tab'+(t===activeTab?' on':'')+'" onclick="pgSwitchTab(\''+id+'\',\''+t+'\')">'+labels[i]+'</button>';
+      var labels=['Scheda','Inventario','Abilità','Backstory','🔒'];
+      var btn = '<button class="pg-tab'+(t===activeTab?' on':'')+'" onclick="pgSwitchTab(\''+id+'\',\''+t+'\')">'+labels[i]+'</button>';
+      return btn;
     }).join('')+'</div>'
     +'<div class="pg-pane'+(activeTab==='scheda'?' on':'')+'" id="pg-pane-scheda">'+scheda_pane+'</div>'
     +'<div class="pg-pane'+(activeTab==='inventario'?' on':'')+'" id="pg-pane-inventario">'+inv_pane+'</div>'
@@ -2819,6 +2820,13 @@ function pgEnsure(id){
 }
 
 function pgSwitchTab(id,tab){
+  if(tab==='rissa'){
+    if(sessionStorage.getItem('sw_rissa_ok')!=='1'){
+      var pw=prompt('Password:');
+      if(pw!=='5790'){ return; }
+      sessionStorage.setItem('sw_rissa_ok','1');
+    }
+  }
   pgCurrentTab[id]=tab;
   document.querySelectorAll('.pg-tab').forEach(function(b){ b.classList.remove('on'); });
   document.querySelectorAll('.pg-pane').forEach(function(p){ p.classList.remove('on'); });
