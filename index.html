@@ -2355,18 +2355,69 @@ function initPlayerSession(id){
     .pg-empty { color:rgba(200,185,155,.3); font-style:italic; font-size:13px; padding:6px 0; }
 
     /* ── layout scheda principale ── */
-    .pg-scheda-main { display:grid; grid-template-columns:280px 1fr; gap:20px; align-items:start; }
+    .pg-scheda-main { display:grid; grid-template-columns:260px 1fr; gap:24px; align-items:start; }
     @media(max-width:700px){ .pg-scheda-main { grid-template-columns:1fr; } }
-    .pg-scheda-left { display:flex; flex-direction:column; align-items:center; }
+    .pg-scheda-left { display:flex; flex-direction:column; align-items:center; gap:10px; }
     .pg-scheda-right { display:flex; flex-direction:column; gap:0; }
-    /* ritratto grande nella scheda */
-    .pg-scheda-left .pg-portrait-wrap { width:220px; height:280px; }
-    .pg-scheda-left .pg-portrait { width:220px; height:280px; border-radius:6px; }
+
+    /* nome e sottotitolo sopra il ritratto */
+    .pg-scheda-nome {
+      font-family:'Cinzel Decorative',cursive; font-size:clamp(18px,2vw,26px);
+      color:#f0e8cc; text-align:center; line-height:1.2;
+      text-shadow:0 0 20px rgba(201,168,76,.35);
+    }
+    .pg-scheda-sub {
+      font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px;
+      text-transform:uppercase; color:rgba(201,168,76,.55); text-align:center;
+      line-height:1.6;
+    }
+    /* ritratto grande */
+    .pg-scheda-left .pg-portrait-wrap { width:240px; height:320px; }
+    .pg-scheda-left .pg-portrait { width:240px; height:320px; border-radius:6px; }
     .pg-scheda-left .pg-portrait-corner { width:14px; height:14px; }
     .pg-scheda-left .pg-portrait-corner.tl { top:-3px; left:-3px; }
     .pg-scheda-left .pg-portrait-corner.tr { top:-3px; right:-3px; }
     .pg-scheda-left .pg-portrait-corner.bl { bottom:-3px; left:-3px; }
     .pg-scheda-left .pg-portrait-corner.br { bottom:-3px; right:-3px; }
+    /* pill centrate */
+    .pg-scheda-pills { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+    /* combat block compatto */
+    .pg-combat-block { width:100%; }
+    .pg-combat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+    /* ── caratteristiche + TS affiancati ── */
+    .pg-stats-ts-wrap { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:start; }
+    /* stat verticali: 2 colonne da 3 */
+    .pg-stat-row-vert { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    @media(max-width:500px){ .pg-stat-row-vert { grid-template-columns:repeat(3,1fr); } }
+
+    /* TS list */
+    .pg-ts-list { display:flex; flex-direction:column; gap:4px; min-width:120px; padding:4px 0; }
+    .pg-ts-row {
+      display:flex; align-items:center; gap:8px; padding:4px 8px;
+      border-radius:3px; font-size:13px;
+      transition:background .15s;
+    }
+    .pg-ts-row:hover { background:rgba(255,255,255,.02); }
+    .pg-ts-row.comp { background:rgba(201,168,76,.04); }
+    .pg-ts-dot {
+      width:10px; height:10px; border-radius:50%; flex-shrink:0;
+      border:1px solid rgba(201,168,76,.3);
+    }
+    .pg-ts-dot.filled {
+      background:var(--goldd); border-color:var(--goldd);
+      box-shadow:0 0 6px rgba(201,168,76,.5);
+    }
+    .pg-ts-name {
+      font-family:'Cinzel',serif; font-size:9px; letter-spacing:1px;
+      text-transform:uppercase; color:rgba(200,185,155,.6); flex:1;
+    }
+    .pg-ts-row.comp .pg-ts-name { color:rgba(201,168,76,.8); }
+    .pg-ts-val {
+      font-family:'Cinzel',serif; font-size:13px; color:#f0e8cc;
+      min-width:28px; text-align:right;
+    }
+    .pg-ts-row.comp .pg-ts-val { color:var(--goldh); }
 
     /* ── leggenda save ── */
     .pg-save-legend {
@@ -2539,49 +2590,61 @@ function pgRender(id){
   }
 
   // ── PANE SCHEDA ───────────────────────────────────
+  // Tiri salvezza come lista compatta
+  var tsHtml = ['FOR','DES','COS','INT','SAG','CAR'].map(function(k){
+    var v   = sc.stats[k];
+    var mn  = pgModNum(v);
+    var prof= parseInt(sc.bonusCompetenza)||4;
+    var comp= sc.tiriSalvezza && sc.tiriSalvezza[k];
+    var tsBonus = comp ? mn+prof : mn;
+    var tsStr   = (tsBonus>=0?'+':'')+tsBonus;
+    return '<div class="pg-ts-row'+(comp?' comp':'')+'">'
+      +'<span class="pg-ts-dot'+(comp?' filled':'')+'"></span>'
+      +'<span class="pg-ts-name">'+k+'</span>'
+      +'<span class="pg-ts-val">'+tsStr+'</span>'
+      +'</div>';
+  }).join('');
+
   var scheda_pane =
-    // Titolo centrato in cima
-    '<div style="text-align:center;margin-bottom:20px;">'
-    +'<div style="font-family:\'Cinzel Decorative\',cursive;font-size:clamp(16px,2vw,24px);color:#f0e8cc;letter-spacing:2px;text-shadow:0 0 20px rgba(201,168,76,.3);">Scheda Personaggio</div>'
-    +'<div style="font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(201,168,76,.5);margin-top:4px;">'+escHtml(sc.razza)+(sc.classe&&sc.classe!=='—'?' · '+escHtml(sc.classe):'')+(sc.sottoclasse&&sc.sottoclasse!=='—'?' ('+escHtml(sc.sottoclasse)+')':'')+'</div>'
-    +'</div>'
-    // Layout a due colonne: ritratto sx, stats dx
-    +'<div class="pg-scheda-main">'
-    // Colonna sinistra — ritratto grande
+    '<div class="pg-scheda-main">'
+    // ── COLONNA SINISTRA ──
     +'<div class="pg-scheda-left">'
+    // Nome sopra l'immagine
+    +'<div class="pg-scheda-nome">'+escHtml(ch.nome)+'</div>'
+    +'<div class="pg-scheda-sub">'+escHtml(sc.razza)+(sc.classe&&sc.classe!=='—'?' · '+escHtml(sc.classe):'')+(sc.sottoclasse&&sc.sottoclasse!=='—'?'<br><span style="opacity:.6">'+escHtml(sc.sottoclasse)+'</span>':'')+'</div>'
+    // Ritratto
     +portrait
-    +'<div class="pg-header-pills" style="justify-content:center;margin-top:12px;">'
+    // Pill sotto
+    +'<div class="pg-scheda-pills">'
     +'<span class="pg-pill gold">Lv '+sc.livello+'</span>'
-    +(sc.bonusCompetenza&&sc.bonusCompetenza!=='—'?'<span class="pg-pill">Comp '+sc.bonusCompetenza+'</span>':'')
-    +(hasMagia?'<span class="pg-pill">DC '+sc.spellSaveDC+'</span>':'')
+    +(sc.bonusCompetenza&&sc.bonusCompetenza!=='—'?'<span class="pg-pill">Prof '+sc.bonusCompetenza+'</span>':'')
     +(sc.ca&&sc.ca!=='—'?'<span class="pg-pill">CA '+sc.ca+'</span>':'')
     +'</div>'
-    // Statistiche di combattimento sotto il ritratto
-    +'<div class="pg-block" style="margin-top:14px;"><div class="pg-block-title">Combattimento</div>'
-    +'<div class="pg-vitals" style="grid-template-columns:1fr 1fr;gap:8px;">'
-    +'<div class="pg-vital hp" style="grid-column:1/-1;"><div class="pg-vital-lbl">Punti Ferita</div>'
-    +'<div class="pg-hp-wrap">'
-    +'<input class="pg-hp-edit" id="pg-hp-cur" type="text" inputmode="numeric" value="'+hpCur+'" onchange="pgSaveHp(\''+id+'\',this.value)">'
-    +'<span class="pg-hp-sep">/</span><span class="pg-hp-max">'+sc.hpMax+'</span></div>'
+    // Combattimento
+    +'<div class="pg-block pg-combat-block">'
+    +'<div class="pg-combat-grid">'
+    +'<div class="pg-vital hp" style="grid-column:1/-1;">'
+    +'<div class="pg-vital-lbl">Punti Ferita</div>'
+    +'<div class="pg-hp-wrap"><input class="pg-hp-edit" id="pg-hp-cur" type="text" inputmode="numeric" value="'+hpCur+'" onchange="pgSaveHp(\''+id+'\',this.value)"><span class="pg-hp-sep">/</span><span class="pg-hp-max">'+sc.hpMax+'</span></div>'
     +'<div class="pg-hp-bar-wrap"><div class="pg-hp-bar" id="pg-hp-bar" style="width:'+hpPct+'%"></div></div>'
     +'<div class="pg-hp-controls"><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',-1)">−</button><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',1)">+</button></div>'
     +'</div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">CA</div><div class="pg-vital-val">'+sc.ca+'</div></div>'
     +'<div class="pg-vital"><div class="pg-vital-lbl">Iniziativa</div><div class="pg-vital-val">'+sc.init+'</div></div>'
-    +'<div class="pg-vital" style="grid-column:1/-1;"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" style="font-size:16px;">'+sc.velocita+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" style="font-size:15px;">'+sc.velocita+'</div></div>'
     +'</div></div>'
-    +(hasRisorse?'<div class="pg-block"><div class="pg-block-title">Risorse</div>'+risorseHtml+'</div>':'')
-    +spellInfoHtml
     +'</div>'
-    // Colonna destra — caratteristiche, abilità, sensi, linguaggi
+    // ── COLONNA DESTRA ──
     +'<div class="pg-scheda-right">'
-    +'<div class="pg-block"><div class="pg-block-title">Caratteristiche & Tiri Salvezza</div>'
-    +'<div class="pg-stat-row">'+statsHtml+'</div>'
-    +'<div class="pg-save-legend">'
-    +'<span><span style="width:7px;height:7px;border-radius:50%;background:var(--goldd);box-shadow:0 0 6px rgba(201,168,76,.5);display:inline-block;"></span>TS Competente</span>'
-    +'<span><span style="width:7px;height:7px;border-radius:50%;border:1px solid rgba(201,168,76,.3);display:inline-block;"></span>TS Non comp.</span>'
+    // Caratteristiche + TS affiancati
+    +'<div class="pg-block">'
+    +'<div class="pg-block-title">Caratteristiche & Tiri Salvezza</div>'
+    +'<div class="pg-stats-ts-wrap">'
+    +'<div class="pg-stat-row-vert">'+statsHtml+'</div>'
+    +'<div class="pg-ts-list">'+tsHtml+'</div>'
     +'</div></div>'
+    // Abilità
     +skillHtml
+    // Sensi + Linguaggi
     +infoHtml
     +'</div>'
     +'</div>';
