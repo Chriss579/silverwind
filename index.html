@@ -2355,7 +2355,7 @@ function initPlayerSession(id){
     .pg-empty { color:rgba(200,185,155,.3); font-style:italic; font-size:13px; padding:6px 0; }
 
     /* ── layout scheda principale ── */
-    .pg-scheda-main { display:grid; grid-template-columns:260px 1fr; gap:24px; align-items:start; }
+    .pg-scheda-main { display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start; }
     @media(max-width:700px){ .pg-scheda-main { grid-template-columns:1fr; } }
     .pg-scheda-left { display:flex; flex-direction:column; align-items:center; gap:10px; }
     .pg-scheda-right { display:flex; flex-direction:column; gap:0; }
@@ -2365,15 +2365,19 @@ function initPlayerSession(id){
       font-family:'Cinzel Decorative',cursive; font-size:clamp(18px,2vw,26px);
       color:#f0e8cc; text-align:center; line-height:1.2;
       text-shadow:0 0 20px rgba(201,168,76,.35);
+      border:none; border-bottom:none; padding-bottom:0;
     }
     .pg-scheda-sub {
       font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px;
       text-transform:uppercase; color:rgba(201,168,76,.55); text-align:center;
-      line-height:1.6;
+      line-height:1.6; border:none; margin-bottom:10px;
     }
+    /* blocktitle dentro stats-ts-wrap senza linea after */
+    .pg-stats-ts-wrap .pg-block-title::after { display:none; }
+    .pg-stats-ts-wrap .pg-block-title { margin-bottom:8px; }
     /* ritratto grande */
-    .pg-scheda-left .pg-portrait-wrap { width:240px; height:320px; }
-    .pg-scheda-left .pg-portrait { width:240px; height:320px; border-radius:6px; }
+    .pg-scheda-left .pg-portrait-wrap { width:280px; height:380px; }
+    .pg-scheda-left .pg-portrait { width:280px; height:380px; border-radius:6px; }
     .pg-scheda-left .pg-portrait-corner { width:14px; height:14px; }
     .pg-scheda-left .pg-portrait-corner.tl { top:-3px; left:-3px; }
     .pg-scheda-left .pg-portrait-corner.tr { top:-3px; right:-3px; }
@@ -2639,8 +2643,14 @@ function pgRender(id){
     +'<div class="pg-block">'
     +'<div class="pg-block-title">Caratteristiche & Tiri Salvezza</div>'
     +'<div class="pg-stats-ts-wrap">'
+    +'<div>'
+    +'<div class="pg-block-title" style="margin-bottom:10px;">Caratteristiche</div>'
     +'<div class="pg-stat-row-vert">'+statsHtml+'</div>'
+    +'</div>'
+    +'<div>'
+    +'<div class="pg-block-title" style="margin-bottom:10px;">Tiri Salvezza</div>'
     +'<div class="pg-ts-list">'+tsHtml+'</div>'
+    +'</div>'
     +'</div></div>'
     // Abilità
     +skillHtml
