@@ -2373,8 +2373,9 @@ function initPlayerSession(id){
       line-height:1.6; border:none; margin-bottom:10px;
     }
     /* ── caratteristiche + TS affiancati ── */
-    .pg-stats-ts-wrap { display:grid; grid-template-columns:1fr auto 1fr; gap:0; align-items:start; }
-    .pg-stats-col, .pg-ts-col { padding:4px 8px; }
+    .pg-stats-ts-wrap { display:flex; flex-direction:row; align-items:start; gap:0; }
+    .pg-stats-col { flex:1; padding:4px 12px 4px 4px; }
+    .pg-ts-col { flex:1; padding:4px 4px 4px 12px; }
     .pg-stats-col-title {
       font-family:'Cinzel',serif; font-size:9px; letter-spacing:2px;
       text-transform:uppercase; color:rgba(201,168,76,.5);
@@ -2382,11 +2383,9 @@ function initPlayerSession(id){
     }
     /* divisore verticale fade dorato */
     .pg-stats-divider {
-      width:1px; align-self:stretch;
+      width:1px; align-self:stretch; flex-shrink:0;
       background:linear-gradient(to bottom, transparent 0%, rgba(201,168,76,.4) 20%, rgba(201,168,76,.4) 80%, transparent 100%);
-      margin:0 8px;
     }
-    /* blocktitle dentro stats-ts-wrap nascosto (usiamo pg-stats-col-title) */
     .pg-stats-ts-wrap .pg-block-title { display:none; }
     /* ritratto grande */
     .pg-scheda-left .pg-portrait-wrap { width:280px; height:380px; }
@@ -2404,9 +2403,8 @@ function initPlayerSession(id){
 
     /* ── caratteristiche + TS affiancati ── */
     .pg-stats-ts-wrap { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:start; }
-    /* stat verticali: 2 colonne da 3 */
-    .pg-stat-row-vert { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-    @media(max-width:500px){ .pg-stat-row-vert { grid-template-columns:repeat(3,1fr); } }
+    /* stat verticali: 1 colonna */
+    .pg-stat-row-vert { display:grid; grid-template-columns:1fr; gap:6px; }
 
     /* TS list */
     .pg-ts-list { display:flex; flex-direction:column; gap:4px; min-width:120px; padding:4px 0; }
