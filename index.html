@@ -1903,9 +1903,8 @@ function initPlayerSession(id){
 
     /* ── STAT BOXES ── */
     .pg-stat-row {
-      display: grid; grid-template-columns: repeat(6,1fr); gap: 8px;
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
     }
-    @media(max-width:560px){ .pg-stat-row { grid-template-columns:repeat(3,1fr); } }
 
     .pg-stat {
       position: relative; text-align:center;
@@ -2650,7 +2649,10 @@ function pgRender(id){
     // Caratteristiche + TS affiancati
     +'<div class="pg-block">'
     +'<div class="pg-stats-ts-wrap">'
+    +'<div>'
+    +'<div class="pg-stats-col-title">Caratteristiche</div>'
     +'<div class="pg-stat-row">'+statsHtml+'</div>'
+    +'</div>'
     +'<div class="pg-stats-divider"></div>'
     +'<div class="pg-ts-col">'
     +'<div class="pg-stats-col-title">Tiri Salvezza</div>'
