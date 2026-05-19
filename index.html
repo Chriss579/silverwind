@@ -2650,18 +2650,12 @@ function pgRender(id){
     +'</div>'
     // ── COLONNA DESTRA ──
     +'<div class="pg-scheda-right">'
-    // Caratteristiche + TS affiancati
+    // Caratteristiche + TS
     +'<div class="pg-block">'
-    +'<div class="pg-stats-ts-wrap">'
-    +'<div class="pg-stats-col">'
-    +'<div class="pg-stats-col-title">Caratteristiche</div>'
-    +'<div class="pg-stat-row-vert">'+statsHtml+'</div>'
-    +'</div>'
-    +'<div class="pg-stats-divider"></div>'
-    +'<div class="pg-ts-col">'
-    +'<div class="pg-stats-col-title">Tiri Salvezza</div>'
-    +'<div class="pg-ts-list">'+tsHtml+'</div>'
-    +'</div>'
+    +'<div class="pg-stat-row">'+statsHtml+'</div>'
+    +'<div class="pg-save-legend">'
+    +'<span><span style="width:7px;height:7px;border-radius:50%;background:var(--goldd);box-shadow:0 0 6px rgba(201,168,76,.5);display:inline-block;"></span>TS Competente</span>'
+    +'<span><span style="width:7px;height:7px;border-radius:50%;border:1px solid rgba(201,168,76,.3);display:inline-block;"></span>TS Non comp.</span>'
     +'</div></div>'
     // Abilità
     +skillHtml
