@@ -2425,6 +2425,10 @@ function initPlayerSession(id){
     .pg-scheda-right { display:flex; flex-direction:column; gap:0; }
 
     /* nome e sottotitolo sopra il ritratto */
+    /* nome + livello inline */
+    .pg-scheda-nome-row { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+    .pg-scheda-lv { display:flex; align-items:center; }
+
     .pg-scheda-nome {
       font-family:'Cinzel Decorative',cursive; font-size:clamp(18px,2vw,26px);
       color:#f0e8cc; text-align:center; line-height:1.2;
@@ -2693,15 +2697,16 @@ function pgRender(id){
     // ── COLONNA SINISTRA ──
     +'<div class="pg-scheda-left">'
     // Nome sopra l'immagine
+    +'<div class="pg-scheda-nome-row">'
     +'<div class="pg-scheda-nome">'+escHtml(ch.nome)+'</div>'
+    +'<div class="pg-scheda-lv" id="pg-scheda-lv-wrap"><span class="pg-pill gold" id="pg-lv-display">Lv '+(pgData[id]&&pgData[id].livello||sc.livello)+'</span><input class="pg-edit-field-sm pg-stat-inp" id="pg-inp-livello" value="'+(pgData[id]&&pgData[id].livello||sc.livello)+'" style="display:none;width:50px;" placeholder="Lv"></div>'
+    +'</div>'
     +'<div class="pg-scheda-sub">'+escHtml(sc.razza)+(sc.classe&&sc.classe!=='—'?' · '+escHtml(sc.classe):'')+(sc.sottoclasse&&sc.sottoclasse!=='—'?'<br><span style="opacity:.6">'+escHtml(sc.sottoclasse)+'</span>':'')+'</div>'
     // Ritratto
     +portrait
     // Pill sotto
     +'<div class="pg-scheda-pills">'
-    +'<span class="pg-pill gold">Lv '+sc.livello+'</span>'
     +(sc.bonusCompetenza&&sc.bonusCompetenza!=='—'?'<span class="pg-pill">Prof '+sc.bonusCompetenza+'</span>':'')
-    +(sc.ca&&sc.ca!=='—'?'<span class="pg-pill">CA '+sc.ca+'</span>':'')
     +'</div>'
     // Combattimento
     +'<div class="pg-block pg-combat-block">'
@@ -2712,8 +2717,10 @@ function pgRender(id){
     +'<div class="pg-hp-bar-wrap"><div class="pg-hp-bar" id="pg-hp-bar" style="width:'+hpPct+'%"></div></div>'
     +'<div class="pg-hp-controls"><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',-1)">−</button><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',1)">+</button></div>'
     +'</div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Iniziativa</div><div class="pg-vital-val" id="pg-vital-init">'+sc.init+'</div></div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" id="pg-vital-vel" style="font-size:15px;">'+sc.velocita+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Classe Armatura</div><div class="pg-vital-val" id="pg-vital-ca">'+(pgData[id]&&pgData[id].ca||sc.ca)+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Bonus Comp.</div><div class="pg-vital-val" id="pg-vital-prof">'+(pgData[id]&&pgData[id].bonusCompetenza||sc.bonusCompetenza)+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Iniziativa</div><div class="pg-vital-val" id="pg-vital-init">'+(pgData[id]&&pgData[id].init||sc.init)+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" id="pg-vital-vel" style="font-size:15px;">'+(pgData[id]&&pgData[id].velocita||sc.velocita)+'</div></div>'
     +'</div></div>'
     // Equipaggiamento nella colonna sinistra
     +(function(){
@@ -4459,8 +4466,14 @@ function pgToggleEdit(id){
     document.querySelectorAll('.pg-stat-mod').forEach(function(el){ el.style.display='none'; });
     _pgMakeEditable(id, 'pg-vital-hpmax', 'hpMax');
     _pgMakeEditable(id, 'pg-vital-ca',    'ca');
+    _pgMakeEditable(id, 'pg-vital-prof',  'bonusCompetenza');
     _pgMakeEditable(id, 'pg-vital-init',  'init');
     _pgMakeEditable(id, 'pg-vital-vel',   'velocita');
+    // Livello
+    var lvDisp=document.getElementById('pg-lv-display');
+    var lvInp=document.getElementById('pg-inp-livello');
+    if(lvDisp) lvDisp.style.display='none';
+    if(lvInp) lvInp.style.display='inline-block';
   } else {
     // Raccogli PRIMA tutti i valori dagli input
     pgEnsure(id);
@@ -4480,6 +4493,9 @@ function pgToggleEdit(id){
       var field=inp.getAttribute('data-field');
       if(field){ pgData[id][field]=inp.value; if(CHARS[id]&&CHARS[id].scheda) CHARS[id].scheda[field]=inp.value; }
     });
+    // Livello
+    var lvInp=document.getElementById('pg-inp-livello');
+    if(lvInp){ pgData[id].livello=lvInp.value; if(CHARS[id]&&CHARS[id].scheda) CHARS[id].scheda.livello=lvInp.value; }
 
     if(btn){ btn.textContent='✏ Modifica'; btn.classList.remove('saving'); }
     if(pane) pane.classList.remove('pg-edit-mode');
@@ -4499,19 +4515,21 @@ function pgToggleEdit(id){
 function _pgMakeEditable(id, elId, field){
   var el = document.getElementById(elId);
   if(!el) return;
-  var cur = el.textContent;
+  // Evita di aggiungere input due volte
+  if(el.nextSibling && el.nextSibling.getAttribute && el.nextSibling.getAttribute('data-field')===field) return;
+  var cur = el.textContent.trim();
   var inp = document.createElement('input');
   inp.className = 'pg-edit-field-sm';
   inp.value = cur;
-  inp.style.width = '60px';
+  inp.style.cssText = 'width:70px;text-align:center;font-size:18px;padding:4px 6px;';
   inp.setAttribute('data-field', field);
   inp.setAttribute('data-char', id);
   inp.onchange = function(){
     pgEnsure(id);
-    if(!pgData[id].scheda) pgData[id].scheda = {};
-    pgData[id].scheda[field] = this.value;
+    pgData[id][field] = this.value;
     if(CHARS[id] && CHARS[id].scheda) CHARS[id].scheda[field] = this.value;
   };
+  el.setAttribute('data-field-hidden', '1');
   el.style.display='none';
   el.parentNode.insertBefore(inp, el.nextSibling);
 }
