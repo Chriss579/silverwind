@@ -1980,7 +1980,8 @@ function initPlayerSession(id){
       text-transform:uppercase; color: rgba(201,168,76,.45); margin-bottom:6px;
     }
     .pg-vital-val {
-      font-family:'Cinzel',serif; font-size:20px; color: #f0e8cc;
+      font-family:'Cinzel',serif; font-size:20px; font-weight:600; color:#f0e8cc;
+      line-height:1; letter-spacing:1px;
     }
     /* HP principale */
     .pg-vital.hp {
@@ -2717,10 +2718,10 @@ function pgRender(id){
     +'<div class="pg-hp-bar-wrap"><div class="pg-hp-bar" id="pg-hp-bar" style="width:'+hpPct+'%"></div></div>'
     +'<div class="pg-hp-controls"><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',-1)">−</button><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',1)">+</button></div>'
     +'</div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Classe Armatura</div><div class="pg-vital-val" id="pg-vital-ca">'+(pgData[id]&&pgData[id].ca||sc.ca)+'</div></div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Bonus Comp.</div><div class="pg-vital-val" id="pg-vital-prof">'+(pgData[id]&&pgData[id].bonusCompetenza||sc.bonusCompetenza)+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">C.A.</div><div class="pg-vital-val" id="pg-vital-ca">'+(pgData[id]&&pgData[id].ca||sc.ca)+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Prof.</div><div class="pg-vital-val" id="pg-vital-prof">'+(pgData[id]&&pgData[id].bonusCompetenza||sc.bonusCompetenza)+'</div></div>'
     +'<div class="pg-vital"><div class="pg-vital-lbl">Iniziativa</div><div class="pg-vital-val" id="pg-vital-init">'+(pgData[id]&&pgData[id].init||sc.init)+'</div></div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" id="pg-vital-vel" style="font-size:15px;">'+(pgData[id]&&pgData[id].velocita||sc.velocita)+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" id="pg-vital-vel" >'+(pgData[id]&&pgData[id].velocita||sc.velocita)+'</div></div>'
     +'</div></div>'
     // Equipaggiamento nella colonna sinistra
     +(function(){
