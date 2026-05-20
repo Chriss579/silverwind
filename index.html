@@ -2353,7 +2353,73 @@ function initPlayerSession(id){
     }
     .pg-empty { color:rgba(200,185,155,.3); font-style:italic; font-size:13px; padding:6px 0; }
 
-    /* ── layout scheda principale ── */
+    /* ── topbar modifica ── */
+    .pg-topbar { display:flex; justify-content:flex-end; padding:8px 0 4px; }
+    .pg-edit-btn {
+      font-family:'Cinzel',serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+      padding:7px 18px; border-radius:3px; cursor:pointer; transition:all .15s;
+      background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.3); color:var(--goldh);
+    }
+    .pg-edit-btn:hover { background:rgba(201,168,76,.18); border-color:var(--goldd); }
+    .pg-edit-btn.saving { background:rgba(80,160,80,.12); border-color:rgba(80,200,80,.4); color:#80d8a0; }
+
+    /* ── campi editabili in modalità modifica ── */
+    .pg-edit-field {
+      background:rgba(8,7,5,.8); border:1px solid rgba(201,168,76,.2);
+      color:#f0e8cc; font-family:'Lora',Georgia,serif; font-size:13px;
+      padding:5px 8px; border-radius:3px; width:100%; outline:none;
+      transition:border-color .2s;
+    }
+    .pg-edit-field:focus { border-color:rgba(201,168,76,.5); }
+    .pg-edit-field-sm {
+      background:rgba(8,7,5,.8); border:1px solid rgba(201,168,76,.2);
+      color:#f0e8cc; font-family:'Cinzel',serif; font-size:13px; font-weight:600;
+      padding:3px 6px; border-radius:3px; width:60px; text-align:center; outline:none;
+      transition:border-color .2s;
+    }
+    .pg-edit-field-sm:focus { border-color:rgba(201,168,76,.5); }
+    /* in modalità modifica le stat mostrano un input */
+    .pg-edit-mode .pg-stat-val { display:none; }
+    .pg-edit-mode .pg-stat-inp { display:block !important; }
+    .pg-stat-inp { display:none; }
+
+    .pg-equip-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+    .pg-equip-item {
+      font-size:13px; color:rgba(200,185,155,.7); padding:5px 8px;
+      border-radius:3px; border-left:2px solid rgba(201,168,76,.2);
+      background:rgba(8,7,5,.4);
+    }
+    .pg-equip-item::before { content:'◆ '; font-size:8px; color:rgba(201,168,76,.4); }
+
+    /* ── popup immagine NPC ── */
+    .npc-img-popup-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9000;
+      display:flex; align-items:center; justify-content:center; padding:20px;
+      backdrop-filter:blur(6px); animation:pgFadeIn .2s ease both;
+    }
+    .npc-img-popup-frame {
+      position:relative; padding:12px;
+      background:linear-gradient(160deg,rgba(22,19,12,.98),rgba(14,13,9,1));
+      border:2px solid rgba(201,168,76,.4);
+      border-radius:4px;
+      box-shadow:0 0 60px rgba(0,0,0,.8), 0 0 30px rgba(201,168,76,.1), inset 0 1px 0 rgba(201,168,76,.15);
+    }
+    .npc-img-popup-frame::before {
+      content:''; position:absolute; inset:-6px;
+      border:1px solid rgba(201,168,76,.15); border-radius:6px; pointer-events:none;
+    }
+    .npc-img-popup-img {
+      max-width:80vw; max-height:80vh; display:block;
+      border-radius:2px;
+    }
+    .npc-img-popup-close {
+      position:absolute; top:-14px; right:-14px;
+      width:28px; height:28px; border-radius:50%; border:1px solid rgba(201,168,76,.4);
+      background:rgba(14,13,9,.96); color:var(--goldh); font-size:14px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:all .15s;
+    }
+    .npc-img-popup-close:hover { background:rgba(201,168,76,.15); }
     .pg-scheda-main { display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start; }
     @media(max-width:700px){ .pg-scheda-main { grid-template-columns:1fr; } }
     .pg-scheda-left { display:flex; flex-direction:column; align-items:center; gap:10px; }
@@ -2503,8 +2569,9 @@ function pgRender(id){
     var comp = sc.tiriSalvezza && sc.tiriSalvezza[k];
     return '<div class="pg-stat'+glowCls+'">'
       +'<div class="pg-stat-lbl">'+k+'</div>'
-      +'<div class="pg-stat-mod '+cls+'">'+mod+'</div>'
-      +'<div class="pg-stat-score">'+v+'</div>'
+      +'<div class="pg-stat-mod '+cls+'" id="pg-mod-'+k+'">'+mod+'</div>'
+      +'<div class="pg-stat-score" id="pg-score-'+k+'">'+v+'</div>'
+      +'<input class="pg-stat-inp pg-edit-field-sm" id="pg-inp-'+k+'" value="'+v+'" style="display:none;" onchange="pgUpdateStat(\''+id+'\',\''+k+'\',this.value)">'
       +'<div class="pg-stat-save">'
       +'<div class="pg-save-dot'+(comp?' comp':'')+'"></div>'
       +'<span class="pg-save-lbl">TS</span>'
@@ -2636,13 +2703,27 @@ function pgRender(id){
     +'<div class="pg-combat-grid">'
     +'<div class="pg-vital hp" style="grid-column:1/-1;">'
     +'<div class="pg-vital-lbl">Punti Ferita</div>'
-    +'<div class="pg-hp-wrap"><input class="pg-hp-edit" id="pg-hp-cur" type="text" inputmode="numeric" value="'+hpCur+'" onchange="pgSaveHp(\''+id+'\',this.value)"><span class="pg-hp-sep">/</span><span class="pg-hp-max">'+sc.hpMax+'</span></div>'
+    +'<div class="pg-hp-wrap"><input class="pg-hp-edit" id="pg-hp-cur" type="text" inputmode="numeric" value="'+hpCur+'" onchange="pgSaveHp(\''+id+'\',this.value)"><span class="pg-hp-sep">/</span><span class="pg-hp-max" id="pg-vital-hpmax">'+sc.hpMax+'</span></div>'
     +'<div class="pg-hp-bar-wrap"><div class="pg-hp-bar" id="pg-hp-bar" style="width:'+hpPct+'%"></div></div>'
     +'<div class="pg-hp-controls"><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',-1)">−</button><button class="pg-hp-btn" onclick="pgHpDelta(\''+id+'\',1)">+</button></div>'
     +'</div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Iniziativa</div><div class="pg-vital-val">'+sc.init+'</div></div>'
-    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" style="font-size:15px;">'+sc.velocita+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Iniziativa</div><div class="pg-vital-val" id="pg-vital-init">'+sc.init+'</div></div>'
+    +'<div class="pg-vital"><div class="pg-vital-lbl">Velocità</div><div class="pg-vital-val" id="pg-vital-vel" style="font-size:15px;">'+sc.velocita+'</div></div>'
     +'</div></div>'
+    // Equipaggiamento nella colonna sinistra
+    +(function(){
+      var dmItems = (pgData[id]&&pgData[id].dmInv)?pgData[id].dmInv:sc.inventario.slice();
+      var extraItems = (pgData[id]&&pgData[id].inventario)?pgData[id].inventario:[];
+      var allItems = dmItems.concat(extraItems);
+      if(!allItems.length) return '';
+      return '<div class="pg-block pg-combat-block" style="width:100%"><div class="pg-block-title">Equipaggiamento</div>'
+        +'<ul class="pg-equip-list">'
+        +allItems.map(function(o){
+          var nome = typeof o==='string'?o:(o.nome||String(o));
+          return '<li class="pg-equip-item">'+escHtml(nome)+'</li>';
+        }).join('')
+        +'</ul></div>';
+    })()
     +'</div>'
     // ── COLONNA DESTRA ──
     +'<div class="pg-scheda-right">'
@@ -2798,9 +2879,12 @@ function pgRender(id){
 
   // ── ASSEMBLE ──────────────────────────────────────
   document.getElementById('pg-content').innerHTML =
-    '<div class="pg-tabs">'
-    +['scheda','inventario','abilita','backstory','rissa'].map(function(t,i){
-      var labels=['Scheda','Inventario','Abilità','Backstory','🔒'];
+    '<div class="pg-topbar">'
+    +'<button class="pg-edit-btn" id="pg-btn-modifica" onclick="pgToggleEdit(\''+id+'\')">✏ Modifica</button>'
+    +'</div>'
+    +'<div class="pg-tabs">'
+    +['scheda','abilita','inventario','backstory','rissa'].map(function(t,i){
+      var labels=['Scheda','Combattimento','Inventario','Backstory','🔒'];
       var btn = '<button class="pg-tab'+(t===activeTab?' on':'')+'" onclick="pgSwitchTab(\''+id+'\',\''+t+'\')">'+labels[i]+'</button>';
       return btn;
     }).join('')+'</div>'
@@ -2832,7 +2916,7 @@ function pgSwitchTab(id,tab){
   pgCurrentTab[id]=tab;
   document.querySelectorAll('.pg-tab').forEach(function(b){ b.classList.remove('on'); });
   document.querySelectorAll('.pg-pane').forEach(function(p){ p.classList.remove('on'); });
-  var tabMap={scheda:0,inventario:1,abilita:2,backstory:3,rissa:4};
+  var tabMap={scheda:0,abilita:1,inventario:2,backstory:3,rissa:4};
   var allTabs=document.querySelectorAll('.pg-tab');
   if(allTabs[tabMap[tab]]) allTabs[tabMap[tab]].classList.add('on');
   var pane=document.getElementById('pg-pane-'+tab); if(pane) pane.classList.add('on');
@@ -3669,7 +3753,7 @@ function viewNPC(id){
   ov.className='view-modal-overlay'; ov.id='viewModalOv';
   ov.onclick=function(e){if(e.target===ov)closeViewModal();};
   var av = n.img
-    ? '<img class="view-modal-avatar" src="'+escHtml(n.img)+'">'
+    ? '<img class="view-modal-avatar" src="'+escHtml(n.img)+'" onclick="npcImgPopup(\''+escHtml(n.img)+'\')" style="cursor:zoom-in;" title="Clicca per ingrandire">'
     : '<div class="view-modal-avatar-ph">&#128100;</div>';
   var tags = (n.tags||[]).map(function(t){return '<span class="npc-tag">'+escHtml(t)+'</span>';}).join('');
   var note = n.note ? '<div class="view-modal-divider"></div><div class="view-modal-note">'+escHtml(n.note)+'</div>' : '';
@@ -4210,6 +4294,86 @@ function showPersonaggio(id){
   var tab=document.getElementById('tab-personaggio'); if(tab) tab.classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
   if(typeof pgRender==='function') pgRender(id);
+}
+
+var _pgEditMode = false;
+
+function pgToggleEdit(id){
+  _pgEditMode = !_pgEditMode;
+  var btn = document.getElementById('pg-btn-modifica');
+  var pane = document.getElementById('pg-pane-scheda');
+
+  if(_pgEditMode){
+    // Entra in modalità modifica
+    if(btn){ btn.textContent='💾 Salva'; btn.classList.add('saving'); }
+    if(pane) pane.classList.add('pg-edit-mode');
+    // Mostra input, nascondi valori
+    document.querySelectorAll('.pg-stat-inp').forEach(function(inp){ inp.style.display='block'; });
+    document.querySelectorAll('.pg-stat-score').forEach(function(el){ el.style.display='none'; });
+    document.querySelectorAll('.pg-stat-mod').forEach(function(el){ el.style.display='none'; });
+    // Rendi editabili HP max, CA, init, velocita
+    _pgMakeEditable(id, 'pg-vital-hpmax', 'hpMax');
+    _pgMakeEditable(id, 'pg-vital-ca',    'ca');
+    _pgMakeEditable(id, 'pg-vital-init',  'init');
+    _pgMakeEditable(id, 'pg-vital-vel',   'velocita');
+  } else {
+    // Salva e esci da modalità modifica
+    if(btn){ btn.textContent='✏ Modifica'; btn.classList.remove('saving'); }
+    if(pane) pane.classList.remove('pg-edit-mode');
+    // Nascondi input, mostra valori aggiornati
+    document.querySelectorAll('.pg-stat-inp').forEach(function(inp){ inp.style.display='none'; });
+    document.querySelectorAll('.pg-stat-score').forEach(function(el){ el.style.display=''; });
+    document.querySelectorAll('.pg-stat-mod').forEach(function(el){ el.style.display=''; });
+    // Salva su JSONBin
+    ghPush(null);
+    // Re-render scheda per aggiornare modificatori e TS
+    pgRender(id);
+  }
+}
+
+function _pgMakeEditable(id, elId, field){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  var cur = el.textContent;
+  var inp = document.createElement('input');
+  inp.className = 'pg-edit-field-sm';
+  inp.value = cur;
+  inp.style.width = '60px';
+  inp.setAttribute('data-field', field);
+  inp.setAttribute('data-char', id);
+  inp.onchange = function(){
+    pgEnsure(id);
+    if(!pgData[id].scheda) pgData[id].scheda = {};
+    pgData[id].scheda[field] = this.value;
+    if(CHARS[id] && CHARS[id].scheda) CHARS[id].scheda[field] = this.value;
+  };
+  el.style.display='none';
+  el.parentNode.insertBefore(inp, el.nextSibling);
+}
+
+function pgUpdateStat(id, stat, val){
+  val = parseInt(val)||10;
+  pgEnsure(id);
+  if(!pgData[id].stats) pgData[id].stats = {};
+  pgData[id].stats[stat] = val;
+  if(CHARS[id] && CHARS[id].scheda && CHARS[id].scheda.stats)
+    CHARS[id].scheda.stats[stat] = val;
+  // Aggiorna il modificatore mostrato
+  var mn = Math.floor((val-10)/2);
+  var modEl = document.getElementById('pg-mod-'+stat);
+  if(modEl) modEl.textContent = (mn>=0?'+':'')+mn;
+}
+
+function npcImgPopup(src){
+  var ov = document.createElement('div');
+  ov.className = 'npc-img-popup-overlay';
+  ov.innerHTML =
+    '<div class="npc-img-popup-frame">'
+    +'<button class="npc-img-popup-close" onclick="this.closest(\'.npc-img-popup-overlay\').remove()">✕</button>'
+    +'<img class="npc-img-popup-img" src="'+escHtml(src)+'">'
+    +'</div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
 }
 
 function showNPC(id){
