@@ -367,6 +367,13 @@ body{background:var(--bg);color:var(--text);font-family:'Lora',Georgia,serif;fon
 .npc-modal-avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--goldd);display:block;background:var(--bg3);}
 .npc-modal-avatar-ph{width:100px;height:100px;border-radius:50%;background:var(--bg3);border:2px solid var(--goldd);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--textd);}
 .npc-modal-img-hint{font-size:10px;color:var(--textd);margin-top:6px;font-family:'Cinzel',serif;letter-spacing:1px;}
+.npc-pos-picker{position:relative;width:100px;height:100px;border-radius:50%;overflow:hidden;border:2px solid var(--goldd);display:none;margin:0 auto 6px;cursor:crosshair;background:var(--bg3);}
+.npc-pos-picker.active{display:block;}
+.npc-pos-picker-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;-webkit-user-drag:none;}
+.npc-pos-crosshair{position:absolute;width:18px;height:18px;transform:translate(-50%,-50%);pointer-events:none;}
+.npc-pos-crosshair::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.9);transform:translateX(-50%);}
+.npc-pos-crosshair::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,0.9);transform:translateY(-50%);}
+.npc-pos-hint{font-size:9px;color:var(--textd);margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px;text-align:center;}
 .npc-modal-right{flex:1;}
 .npc-modal-name-inp{width:100%;background:var(--bg3);border:1px solid var(--bdr);color:var(--silverh);font-family:'Cinzel Decorative',cursive;font-size:18px;padding:8px 12px;border-radius:3px;outline:none;margin-bottom:14px;}
 .npc-modal-name-inp:focus{border-color:var(--goldd);}
@@ -3820,7 +3827,7 @@ function viewNPC(id){
   ov.className='view-modal-overlay'; ov.id='viewModalOv';
   ov.onclick=function(e){if(e.target===ov)closeViewModal();};
   var av = n.img
-    ? '<img class="view-modal-avatar" src="'+escHtml(n.img)+'" onclick="npcImgPopup(\''+escHtml(n.img)+'\')" style="cursor:zoom-in;" title="Clicca per ingrandire">'
+    ? '<img class="view-modal-avatar" src="'+escHtml(n.img)+'" onclick="npcImgPopup(\''+escHtml(n.img)+'\')" style="cursor:zoom-in;object-position:'+escHtml(n.imgPos||'50% 50%')+'" title="Clicca per ingrandire">'
     : '<div class="view-modal-avatar-ph">&#128100;</div>';
   var tags = (n.tags||[]).map(function(t){return '<span class="npc-tag">'+escHtml(t)+'</span>';}).join('');
   var note = n.note ? '<div class="view-modal-divider"></div><div class="view-modal-note">'+escHtml(n.note)+'</div>' : '';
@@ -3889,7 +3896,7 @@ function npcRender(filter){
     return;
   }
   grid.innerHTML = list.map(function(n){
-    var av = n.img ? '<img class="npc-avatar" src="'+escHtml(n.img)+'">' : '<div class="npc-avatar-ph">&#128100;</div>';
+    var av = n.img ? '<img class="npc-avatar" src="'+escHtml(n.img)+'" style="object-position:'+escHtml(n.imgPos||'50% 50%')+'">' : '<div class="npc-avatar-ph">&#128100;</div>';
     var tg = (n.tags||[]).slice(0,3).map(function(t){ return '<span class="npc-tag">'+escHtml(t)+'</span>'; }).join('');
     return '<div class="npc-card" data-id="'+escHtml(n.id)+'">'+av
       +'<div class="npc-name">'+escHtml(n.nome)+'</div>'
@@ -3923,41 +3930,120 @@ function npcOpenModal(id){
   var n = id ? list.find(function(x){return x.id===id;}) : null;
   npcEditingId = id||null;
   var isNew = !n;
-  if(isNew) n={id:null,nome:'',img:'',tags:[],note:''};
+  if(isNew) n={id:null,nome:'',img:'',imgPos:'50% 50%',tags:[],note:''};
   window._npcEditTags = (n.tags||[]).slice();
+  window._npcImgPos = n.imgPos||'50% 50%';
   var ov = document.createElement('div');
   ov.className='npc-modal-overlay'; ov.id='npcModalOv';
   ov.onclick=function(e){if(e.target===ov)npcCloseModal();};
   var tgH = window._npcEditTags.map(function(t,i){
     return '<span class="npc-tag-edit">'+escHtml(t)+'<span class="npc-tag-del" data-idx="'+i+'"> &#215;</span></span>';
   }).join('');
-  var avH = n.img ? '<img class="npc-modal-avatar" id="npcModalAvatar" src="'+n.img+'">' : '<div class="npc-modal-avatar-ph" id="npcModalAvatarPh">👤</div>';
+  var posStr = window._npcImgPos;
+  var posX = parseFloat(posStr)||50;
+  var posY = parseFloat((posStr.split(' ')[1]))||50;
+  var avH = n.img
+    ? '<div class="npc-pos-picker active" id="npcPosPicker">'
+      +'<img class="npc-pos-picker-img" id="npcPosImg" src="'+escHtml(n.img)+'" style="object-position:'+escHtml(posStr)+'">'
+      +'<div class="npc-pos-crosshair" id="npcPosCross" style="left:'+posX+'%;top:'+posY+'%;"></div>'
+      +'</div>'
+    : '<div class="npc-modal-avatar-ph" id="npcModalAvatarPh">&#128100;</div>';
   ov.innerHTML='<div class="npc-modal">'
     +'<div class="npc-modal-top">'
-    +'<div class="npc-modal-avatar-wrap">'+avH+'<div class="npc-modal-img-hint">URL immagine (es. https://...)</div></div>'
+    +'<div class="npc-modal-avatar-wrap">'+avH
+    +'<div class="npc-pos-hint" id="npcPosHint">'+(n.img?'Trascina per riposizionare':'')+'</div>'
+    +'<div class="npc-modal-img-hint">URL immagine</div></div>'
     +'<div class="npc-modal-right">'
-    +'<input class="npc-modal-name-inp" id="npcModalNome" placeholder="Nome NPC…" value="'+escHtml(n.nome)+'">'
-    +'<input class="npc-modal-img-inp" id="npcModalImg" placeholder="https://..." value="'+escHtml(n.img)+'" oninput="npcPreviewImg(this.value)">'
+    +'<input class="npc-modal-name-inp" id="npcModalNome" placeholder="Nome NPC\u2026" value="'+escHtml(n.nome)+'">'
+    +'<input class="npc-modal-img-inp" id="npcModalImg" placeholder="https://..." value="'+escHtml(n.img)+'">'
     +'<div class="npc-tags-edit" id="npcTagsEdit">'+tgH+'</div>'
-    +'<div class="npc-tag-inp-wrap"><input class="npc-tag-inp" id="npcTagInp" placeholder="Aggiungi tag…" onkeydown="if(event.key===\'Enter\')npcAddTag()"><button class="npc-tag-add-btn" onclick="npcAddTag()">+ Tag</button></div>'
+    +'<div class="npc-tag-inp-wrap"><input class="npc-tag-inp" id="npcTagInp" placeholder="Aggiungi tag\u2026"><button class="npc-tag-add-btn" id="npcTagAddBtn">+ Tag</button></div>'
     +'</div></div>'
     +'<span class="npc-note-label">Note</span>'
     +'<textarea class="npc-note-ed" id="npcModalNote">'+escHtml(n.note)+'</textarea>'
     +'<div class="npc-modal-btns">'
-    +(!isNew?'<button class="npc-btn-del" onclick="npcDelete()">Elimina</button>':'')
-    +'<button class="npc-btn-cancel" onclick="npcCloseModal()">Annulla</button>'
-    +'<button class="npc-btn-save" onclick="npcSave()">Salva</button>'
+    +(!isNew?'<button class="npc-btn-del" id="npcBtnDel">Elimina</button>':'')
+    +'<button class="npc-btn-cancel" id="npcBtnCancel">Annulla</button>'
+    +'<button class="npc-btn-save" id="npcBtnSave">Salva</button>'
     +'</div></div>';
   document.body.appendChild(ov);
+
   ov.querySelectorAll('.npc-tag-del').forEach(function(btn){
     btn.addEventListener('click', function(){ npcRemoveTag(parseInt(btn.dataset.idx)); });
   });
+  var tagInp = document.getElementById('npcTagInp');
+  if(tagInp) tagInp.addEventListener('keydown', function(e){ if(e.key==='Enter') npcAddTag(); });
+  var tagAddBtn = document.getElementById('npcTagAddBtn');
+  if(tagAddBtn) tagAddBtn.addEventListener('click', npcAddTag);
+  var btnSave = document.getElementById('npcBtnSave');
+  if(btnSave) btnSave.addEventListener('click', npcSave);
+  var btnCancel = document.getElementById('npcBtnCancel');
+  if(btnCancel) btnCancel.addEventListener('click', npcCloseModal);
+  var btnDel = document.getElementById('npcBtnDel');
+  if(btnDel) btnDel.addEventListener('click', npcDelete);
+
+  var imgInp = document.getElementById('npcModalImg');
+  if(imgInp) imgInp.addEventListener('input', function(){ npcPreviewImg(this.value); });
+
+  var picker = document.getElementById('npcPosPicker');
+  if(picker){
+    var dragging = false;
+    function npcPickerCalc(e){
+      var rect = picker.getBoundingClientRect();
+      var cx = e.touches ? e.touches[0].clientX : e.clientX;
+      var cy = e.touches ? e.touches[0].clientY : e.clientY;
+      var px = Math.min(100, Math.max(0, Math.round((cx - rect.left) / rect.width * 100)));
+      var py = Math.min(100, Math.max(0, Math.round((cy - rect.top) / rect.height * 100)));
+      window._npcImgPos = px+'% '+py+'%';
+      var cross = document.getElementById('npcPosCross');
+      if(cross){ cross.style.left = px+'%'; cross.style.top = py+'%'; }
+      var img = document.getElementById('npcPosImg');
+      if(img) img.style.objectPosition = window._npcImgPos;
+    }
+    picker.addEventListener('mousedown', function(e){ dragging=true; npcPickerCalc(e); e.preventDefault(); });
+    picker.addEventListener('touchstart', function(e){ dragging=true; npcPickerCalc(e); e.preventDefault(); });
+    document.addEventListener('mousemove', function(e){ if(dragging) npcPickerCalc(e); });
+    document.addEventListener('touchmove', function(e){ if(dragging) npcPickerCalc(e); });
+    document.addEventListener('mouseup', function(){ dragging=false; });
+    document.addEventListener('touchend', function(){ dragging=false; });
+  }
 }
 
 function npcPreviewImg(val){
-  var av=document.getElementById('npcModalAvatar');
-  var ph=document.getElementById('npcModalAvatarPh');
-  if(val){ if(av){av.src='npc/'+val;av.style.display='block';} if(ph) ph.style.display='none'; }
+  val = (val||'').trim();
+  var picker = document.getElementById('npcPosPicker');
+  var ph = document.getElementById('npcModalAvatarPh');
+  if(val){
+    if(picker){
+      picker.classList.add('active');
+      var img = document.getElementById('npcPosImg');
+      if(img){ img.src=val; img.style.objectPosition=window._npcImgPos||'50% 50%'; }
+      var cross = document.getElementById('npcPosCross');
+      if(cross){
+        var parts = (window._npcImgPos||'50% 50%').split(' ');
+        cross.style.left = parts[0]||'50%';
+        cross.style.top = parts[1]||'50%';
+      }
+    } else {
+      var wrap = document.getElementById('npcModalAvatarPh') && document.getElementById('npcModalAvatarPh').parentNode;
+      if(wrap){
+        var newPicker = document.createElement('div');
+        newPicker.className='npc-pos-picker active'; newPicker.id='npcPosPicker';
+        newPicker.innerHTML='<img class="npc-pos-picker-img" id="npcPosImg" src="'+escHtml(val)+'" style="object-position:50% 50%">'
+          +'<div class="npc-pos-crosshair" id="npcPosCross" style="left:50%;top:50%;"></div>';
+        if(ph) ph.replaceWith(newPicker);
+        var hint = document.getElementById('npcPosHint');
+        if(hint) hint.textContent='Trascina per riposizionare';
+        window._npcImgPos = '50% 50%';
+      }
+    }
+    if(ph) ph.style.display='none';
+  } else {
+    if(picker) picker.classList.remove('active');
+    if(ph) ph.style.display='flex';
+    var hint2 = document.getElementById('npcPosHint');
+    if(hint2) hint2.textContent='';
+  }
 }
 
 function npcAddTag(){
@@ -3981,14 +4067,15 @@ function npcRefreshTags(){
 function npcSave(){
   var nome=(document.getElementById('npcModalNome').value||'').trim(); if(!nome){alert('Inserisci un nome.');return;}
   var img=(document.getElementById('npcModalImg').value||'').trim();
+  var imgPos=img ? (window._npcImgPos||'50% 50%') : '50% 50%';
   var note=document.getElementById('npcModalNote').value||'';
   var tags=window._npcEditTags.slice();
   if(!npcData[npcCurrentChar]) npcData[npcCurrentChar]=[];
   var list=npcData[npcCurrentChar];
   if(npcEditingId){
-    for(var i=0;i<list.length;i++){if(list[i].id===npcEditingId){list[i]={id:npcEditingId,nome:nome,img:img,tags:tags,note:note};break;}}
+    for(var i=0;i<list.length;i++){if(list[i].id===npcEditingId){list[i]={id:npcEditingId,nome:nome,img:img,imgPos:imgPos,tags:tags,note:note};break;}}
   } else {
-    list.push({id:'npc_'+Date.now(),nome:nome,img:img,tags:tags,note:note});
+    list.push({id:'npc_'+Date.now(),nome:nome,img:img,imgPos:imgPos,tags:tags,note:note});
   }
   npcCloseModal(); npcRender(document.getElementById('npcSearch').value);
  
