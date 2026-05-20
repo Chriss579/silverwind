@@ -2812,7 +2812,7 @@ function pgRender(id){
     '<div class="pg-block">'
     +'<div class="pg-block-title">Peso Trasportato</div>'
     +'<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">'
-    +'<span style="font-family:\'Cinzel Decorative\',cursive;font-size:28px;color:'+pesoColor+';text-shadow:0 0 16px '+pesoColor+'80;">'+pesoTot+'</span>'
+    +'<span id="pg-peso-num" style="font-family:\'Cinzel Decorative\',cursive;font-size:28px;color:'+pesoColor+';text-shadow:0 0 16px '+pesoColor+'80;">'+pesoTot+'</span>'
     +'<span style="font-family:\'Cinzel\',serif;font-size:12px;color:rgba(201,168,76,.4);">/ '+PESO_MAX+' lb</span>'
     +(pesoAlert?'<span style="font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#e88888;text-shadow:0 0 8px rgba(220,80,80,.5);margin-left:8px;animation:pgBlink 1s ease infinite;">⚠ SOVRACCARICO</span>':'')
     +'</div>'
@@ -3006,7 +3006,8 @@ function pgRefreshInv(id){
   // aggiorna barra peso
   var bar=document.getElementById('pg-peso-bar');
   if(bar){ bar.style.width=pesoPct+'%'; bar.style.background='linear-gradient(90deg,'+pesoColor+','+pesoColor+'cc)'; bar.style.boxShadow='0 0 10px '+pesoColor+'88'; }
-  document.querySelectorAll('[id="pg-peso-num"]').forEach(function(el){ el.textContent=pesoTot; el.style.color=pesoColor; });
+  var pesoNumEl=document.getElementById('pg-peso-num');
+  if(pesoNumEl){ pesoNumEl.textContent=pesoTot; pesoNumEl.style.color=pesoColor; pesoNumEl.style.textShadow='0 0 16px '+pesoColor+'80'; }
 
   // aggiorna lista equipaggiati
   var ul=document.getElementById('pg-inv-list'); if(!ul) return;
@@ -4142,6 +4143,7 @@ async function ghPush(btn){
 
 function saveToGitHub(btn){ ghPush(btn); }
 function saveToFile(btn){ ghPush(btn); }
+function saveFile(btn){ ghPush(btn); }
 
 function _cacheKey(charId){ return 'sw_cache_'+charId; }
 
@@ -4556,6 +4558,13 @@ document.addEventListener('DOMContentLoaded',function(){
   // Save buttons
   document.querySelectorAll('[data-action="save"]').forEach(function(btn){
     btn.addEventListener('click',function(){ saveToFile(this); });
+  });
+  // Delegated click per pulsanti save dinamici
+  document.addEventListener('click', function(e){
+    var saveBtn = e.target.closest('[data-action="save"]');
+    if(saveBtn && !saveBtn._saveListened){
+      saveFile(saveBtn);
+    }
   });
   // Delegated click per skill rows (data-sklid/data-sklnm)
   document.addEventListener('click', function(e){
