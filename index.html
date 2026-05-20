@@ -4075,166 +4075,175 @@ function npcOpenCropOverlay(src){
   ov.innerHTML=
     '<div class="npc-crop-title">Riposiziona immagine</div>'
     +'<div class="npc-crop-canvas-wrap" id="npcCropWrap"></div>'
-    +'<div class="npc-crop-hint">Trascina il cerchio &mdash; trascina il bordo per ridimensionare</div>'
+    +'<div class="npc-crop-hint">Trascina il cerchio &mdash; trascina il bordo dorato per ridimensionare</div>'
     +'<div class="npc-crop-btns">'
     +'<button class="npc-crop-cancel" id="npcCropCancel">Annulla</button>'
     +'<button class="npc-crop-confirm" id="npcCropConfirm">Conferma</button>'
     +'</div>';
   document.body.appendChild(ov);
 
+  document.getElementById('npcCropCancel').addEventListener('click', function(){ ov.remove(); });
+
   var wrap = document.getElementById('npcCropWrap');
+  var maxW = Math.min(window.innerWidth - 48, 720);
+  var maxH = Math.min(window.innerHeight - 180, 580);
 
-  // Canvas size: fit viewport leaving room for title/buttons
-  var maxW = Math.min(window.innerWidth - 48, 700);
-  var maxH = Math.min(window.innerHeight - 200, 600);
-
-  var imgEl = new Image();
-  imgEl.onload = function(){
-    var natW = imgEl.naturalWidth;
-    var natH = imgEl.naturalHeight;
-    var scale = Math.min(maxW/natW, maxH/natH, 1);
+  function initCrop(natW, natH){
+    var scale = Math.min(maxW / natW, maxH / natH, 1);
     var cW = Math.round(natW * scale);
     var cH = Math.round(natH * scale);
 
-    wrap.style.width  = cW+'px';
-    wrap.style.height = cH+'px';
-    wrap.style.position = 'relative';
-    wrap.style.overflow = 'hidden';
-    wrap.style.borderRadius = '3px';
-
-    // Background image
-    var bg = document.createElement('img');
-    bg.src = src;
-    bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;';
-    wrap.appendChild(bg);
-
-    // Dark overlay (canvas-based: draws rect with hole for circle)
+    // Single canvas receives all interaction
     var cvs = document.createElement('canvas');
-    cvs.width = cW; cvs.height = cH;
-    cvs.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
+    cvs.width  = cW;
+    cvs.height = cH;
+    cvs.style.cssText = 'display:block;cursor:grab;border-radius:3px;';
+    wrap.style.lineHeight = '0';
     wrap.appendChild(cvs);
     var ctx = cvs.getContext('2d');
 
-    // Circle state — restore from saved imgPos/imgR
-    var posStr = window._npcImgPos||'50% 50%';
+    // Draw image once into an offscreen canvas so we can composite
+    var offImg = document.createElement('canvas');
+    offImg.width = cW; offImg.height = cH;
+    var offCtx = offImg.getContext('2d');
+    offCtx.drawImage(imgEl, 0, 0, cW, cH);
+
+    // Restore circle from saved state
+    var posStr = window._npcImgPos || '50% 50%';
     var parts  = posStr.split(' ');
-    var pxPct  = parseFloat(parts[0])||50;
-    var pyPct  = parseFloat(parts[1])||50;
-    var savedR = window._npcImgR !== undefined ? window._npcImgR : 50;
-    // r is stored as % of min(cW,cH)/2 — convert to px
+    var pxPct  = parseFloat(parts[0]) || 50;
+    var pyPct  = parseFloat(parts[1]) || 50;
+    var savedR = (window._npcImgR !== undefined) ? window._npcImgR : 40;
+
     var minDim = Math.min(cW, cH);
     var cx = cW * pxPct / 100;
     var cy = cH * pyPct / 100;
-    var r  = minDim * savedR / 100;
-    // clamp r
-    var rMin = 20;
-    var rMax = minDim * 0.48;
-    r = Math.max(rMin, Math.min(rMax, r));
+    var rMin = 24;
+    var rMax = minDim * 0.49;
+    var r  = Math.max(rMin, Math.min(rMax, minDim * savedR / 100));
 
-    function drawOverlay(){
-      ctx.clearRect(0,0,cW,cH);
-      // dark mask
-      ctx.fillStyle='rgba(0,0,0,0.55)';
-      ctx.fillRect(0,0,cW,cH);
-      // cut circle
+    var HANDLE_ANG = Math.PI * 0.35;
+    function handlePos(){ return {x: cx + Math.cos(HANDLE_ANG)*r, y: cy + Math.sin(HANDLE_ANG)*r}; }
+
+    function draw(){
+      // 1. clear
+      ctx.clearRect(0, 0, cW, cH);
+      // 2. full image
+      ctx.drawImage(offImg, 0, 0);
+      // 3. dark mask over whole image
+      ctx.fillStyle = 'rgba(0,0,0,0.76)';
+      ctx.fillRect(0, 0, cW, cH);
+      // 4. cut circle — draw image again clipped to circle
       ctx.save();
-      ctx.globalCompositeOperation='destination-out';
       ctx.beginPath();
-      ctx.arc(cx,cy,r,0,2*Math.PI);
-      ctx.fill();
+      ctx.arc(cx, cy, r, 0, 2*Math.PI);
+      ctx.clip();
+      ctx.drawImage(offImg, 0, 0);
       ctx.restore();
-      // gold ring
-      ctx.strokeStyle='rgba(201,168,76,0.95)';
-      ctx.lineWidth=2.5;
+      // 5. gold ring
+      ctx.strokeStyle = 'rgba(201,168,76,0.95)';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.arc(cx,cy,r,0,2*Math.PI);
+      ctx.arc(cx, cy, r, 0, 2*Math.PI);
       ctx.stroke();
-      // resize handle: small filled gold arc at bottom-right of circle
-      var hAng = Math.PI*0.35;
-      var hx = cx + Math.cos(hAng)*r;
-      var hy = cy + Math.sin(hAng)*r;
-      ctx.fillStyle='rgba(201,168,76,1)';
+      // 6. resize handle dot
+      var hp = handlePos();
+      ctx.fillStyle = 'rgba(201,168,76,1)';
       ctx.beginPath();
-      ctx.arc(hx,hy,7,0,2*Math.PI);
+      ctx.arc(hp.x, hp.y, 8, 0, 2*Math.PI);
       ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
-    drawOverlay();
+    draw();
 
-    // Interaction
-    var dragMode = null; // 'move' | 'resize'
-    var dragStartX, dragStartY, dragStartCx, dragStartCy, dragStartR;
+    // Drag state
+    var dragMode = null;
+    var dragStartX, dragStartY, dragStartCx, dragStartCy;
 
-    function getClient(e){ return e.touches ? {x:e.touches[0].clientX,y:e.touches[0].clientY} : {x:e.clientX,y:e.clientY}; }
-    function getLocal(e){
-      var rect = wrap.getBoundingClientRect();
-      var cl = getClient(e);
-      return {x: cl.x - rect.left, y: cl.y - rect.top};
+    function clientPos(e){
+      return e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY}
+                       : {x:e.clientX, y:e.clientY};
     }
-    function handleAng(){ return Math.PI*0.35; }
-    function handlePos(){ return {x: cx+Math.cos(handleAng())*r, y: cy+Math.sin(handleAng())*r}; }
+    function localPos(e){
+      var rect = cvs.getBoundingClientRect();
+      var cl   = clientPos(e);
+      return {x: (cl.x - rect.left) * (cW / rect.width),
+              y: (cl.y - rect.top)  * (cH / rect.height)};
+    }
+
+    cvs.addEventListener('mousedown', onDown);
+    cvs.addEventListener('touchstart', onDown, {passive:false});
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup',   onUp);
+    window.addEventListener('touchend',  onUp);
 
     function onDown(e){
       e.preventDefault();
-      var p = getLocal(e);
+      var p  = localPos(e);
       var hp = handlePos();
       var dh = Math.sqrt((p.x-hp.x)*(p.x-hp.x)+(p.y-hp.y)*(p.y-hp.y));
-      if(dh <= 14){
-        dragMode='resize';
+      if(dh <= 16){
+        dragMode = 'resize';
       } else {
         var dc = Math.sqrt((p.x-cx)*(p.x-cx)+(p.y-cy)*(p.y-cy));
-        if(dc <= r) dragMode='move';
-        else return;
+        dragMode = (dc <= r) ? 'move' : null;
       }
-      dragStartX=p.x; dragStartY=p.y;
-      dragStartCx=cx; dragStartCy=cy; dragStartR=r;
+      if(!dragMode) return;
+      dragStartX  = p.x; dragStartY  = p.y;
+      dragStartCx = cx;  dragStartCy = cy;
+      cvs.style.cursor = dragMode==='move' ? 'grabbing' : 'nw-resize';
     }
     function onMove(e){
       if(!dragMode) return;
       e.preventDefault();
-      var p = getLocal(e);
-      if(dragMode==='move'){
+      var p = localPos(e);
+      if(dragMode === 'move'){
         var nx = dragStartCx + (p.x - dragStartX);
         var ny = dragStartCy + (p.y - dragStartY);
-        // clamp so circle stays inside image
-        cx = Math.max(r, Math.min(cW-r, nx));
-        cy = Math.max(r, Math.min(cH-r, ny));
-      } else if(dragMode==='resize'){
+        cx = Math.max(r, Math.min(cW - r, nx));
+        cy = Math.max(r, Math.min(cH - r, ny));
+      } else {
         var dx = p.x - cx;
         var dy = p.y - cy;
-        var nr = Math.sqrt(dx*dx+dy*dy);
-        r = Math.max(rMin, Math.min(rMax, nr));
-        // re-clamp center after resize
-        cx = Math.max(r, Math.min(cW-r, cx));
-        cy = Math.max(r, Math.min(cH-r, cy));
+        r  = Math.max(rMin, Math.min(rMax, Math.sqrt(dx*dx+dy*dy)));
+        cx = Math.max(r, Math.min(cW - r, cx));
+        cy = Math.max(r, Math.min(cH - r, cy));
       }
-      drawOverlay();
+      draw();
     }
-    function onUp(){ dragMode=null; }
+    function onUp(){
+      if(!dragMode) return;
+      dragMode = null;
+      cvs.style.cursor = 'grab';
+    }
 
-    wrap.addEventListener('mousedown', onDown);
-    wrap.addEventListener('touchstart', onDown, {passive:false});
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, {passive:false});
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchend', onUp);
-
-    document.getElementById('npcCropCancel').addEventListener('click', function(){
-      ov.remove();
-    });
     document.getElementById('npcCropConfirm').addEventListener('click', function(){
-      // Convert back to percentages
-      var px2 = Math.round(cx / cW * 100);
-      var py2 = Math.round(cy / cH * 100);
+      var px2  = Math.round(cx / cW * 100);
+      var py2  = Math.round(cy / cH * 100);
       var rPct = Math.round(r / minDim * 100);
-      window._npcImgPos = px2+'% '+py2+'%';
+      window._npcImgPos = px2 + '% ' + py2 + '%';
       window._npcImgR   = rPct;
-      // Update mini preview in modal
       var prev = document.getElementById('npcModalAvatarPrev');
       if(prev) prev.style.objectPosition = window._npcImgPos;
+      // clean up window listeners
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('mouseup',   onUp);
+      window.removeEventListener('touchend',  onUp);
       ov.remove();
     });
-  };
+  }
+
+  var imgEl = new Image();
+  imgEl.crossOrigin = 'anonymous';
+  imgEl.onload = function(){ initCrop(imgEl.naturalWidth, imgEl.naturalHeight); };
+  // Handle cached images
+  if(imgEl.complete && imgEl.naturalWidth){ initCrop(imgEl.naturalWidth, imgEl.naturalHeight); }
   imgEl.src = src;
+  if(imgEl.complete && imgEl.naturalWidth && !wrap.firstChild){ initCrop(imgEl.naturalWidth, imgEl.naturalHeight); }
 }
 
 /* ══ GITHUB SAVE CSS ══ */
