@@ -1554,14 +1554,12 @@ footer{text-align:center;padding:28px;border-top:1px solid var(--bdr);font-famil
 
 
 var appuntiData = {};
-/* ══════════════════════════════════════════════════
-   CONFIGURAZIONE IMMAGINI
-   Sostituisci i valori '' con i link diretti alle immagini.
+/* CONFIGURAZIONE IMMAGINI
+   Sostituisci i valori con i link diretti alle immagini.
    Usa qualsiasi servizio di hosting (catbox.moe, GitHub, ecc.)
-   Esempio: 'https://i.catbox.moe/abc123.jpg'
-══════════════════════════════════════════════════ */
+   Esempio: https://i.catbox.moe/abc123.jpg */
 var IMGS = {
-  // Schermata di login — sfondo e ritratto per ogni giocatore
+  // Schermata di login - sfondo e ritratto per ogni giocatore
   cal_bg:      'https://files.catbox.moe/qbgmg8.png',
   cal_pg:      'https://files.catbox.moe/gwsusv.png',
   aurelio_bg:  'https://files.catbox.moe/9w3g64.png',
@@ -1571,7 +1569,7 @@ var IMGS = {
   flack_bg:    '',
   flack_pg:    'https://files.catbox.moe/0r46gf.png',
 
-  // Hero parallax — immagine di copertina
+  // Hero parallax - immagine di copertina
   copertina:   '',
 
   // Gli Otto Eroi
@@ -2566,13 +2564,13 @@ function pgRender(id){
     var mod = (mn>=0?'+':'')+mn;
     var cls = mn>0?'pos':mn<0?'neg':'zer';
     var glowCls = mn>0?' pos-glow':mn<0?' neg-glow':'';
-    var comp = sc.tiriSalvezza && sc.tiriSalvezza[k];
+    var comp = (pgData[id]&&pgData[id].tiriSalvezza) ? pgData[id].tiriSalvezza[k] : (sc.tiriSalvezza && sc.tiriSalvezza[k]);
     return '<div class="pg-stat'+glowCls+'">'
       +'<div class="pg-stat-lbl">'+k+'</div>'
       +'<div class="pg-stat-mod '+cls+'" id="pg-mod-'+k+'">'+mod+'</div>'
       +'<div class="pg-stat-score" id="pg-score-'+k+'">'+v+'</div>'
       +'<input class="pg-stat-inp pg-edit-field-sm" id="pg-inp-'+k+'" value="'+v+'" style="display:none;" onchange="pgUpdateStat(\''+id+'\',\''+k+'\',this.value)">'
-      +'<div class="pg-stat-save">'
+      +'<div class="pg-stat-save" data-tsid="'+id+'" data-tsstat="'+k+'" style="cursor:pointer;" title="Clicca per cambiare TS">'
       +'<div class="pg-save-dot'+(comp?' comp':'')+'"></div>'
       +'<span class="pg-save-lbl">TS</span>'
       +'</div>'
@@ -2642,17 +2640,23 @@ function pgRender(id){
   // Merge con dati DM se presenti
   var skillMap = {};
   (sc.abilita||[]).forEach(function(a){ skillMap[a.nome]=a; });
-  var prof=parseInt(sc.bonusCompetenza)||2;
+  var profN=parseInt((pgData[id]&&pgData[id].bonusCompetenza)||sc.bonusCompetenza)||2;
+  var liveStats = (pgData[id]&&pgData[id].stats) ? pgData[id].stats : sc.stats;
+  var liveSkillMap = (pgData[id]&&pgData[id].abilita) ? {} : skillMap;
+  if(pgData[id]&&pgData[id].abilita){
+    pgData[id].abilita.forEach(function(a){ liveSkillMap[a.nome]=a; });
+  }
   var skillHtml='<div class="pg-block"><div class="pg-block-title">Abilità</div><div class="pg-skill-grid">'
     +ALL_SKILLS.map(function(def){
-      var a = skillMap[def.nome] || {nome:def.nome,stat:def.stat,comp:false,exp:false};
-      var base=pgModNum(sc.stats[a.stat]);
-      var bonus=a.exp?base+prof*2:a.comp?base+prof:base;
+      var a = liveSkillMap[def.nome] || skillMap[def.nome] || {nome:def.nome,stat:def.stat,comp:false,exp:false};
+      var base=pgModNum(liveStats[a.stat]||10);
+      var bonus=a.exp?base+profN*2:a.comp?base+profN:base;
       var dc=a.exp?'exp':a.comp?'comp':'';
-      return '<div class="pg-skill-row"><div class="pg-skill-dot'+(dc?' '+dc:'')+'"></div>'
+      return '<div class="pg-skill-row" data-sklid="'+id+'" data-sklnm="'+escHtml(def.nome)+'" style="cursor:pointer;" title="Clicca per cambiare competenza">'
+        +'<div class="pg-skill-dot'+(dc?' '+dc:'')+'" id="pg-sk-dot-'+def.nome.replace(/ /g,'_')+'"></div>'
         +'<span class="pg-skill-name">'+escHtml(a.nome)+'</span>'
         +'<span class="pg-skill-stat">'+a.stat+'</span>'
-        +'<span class="pg-skill-bonus">'+(bonus>=0?'+':'')+bonus+'</span></div>';
+        +'<span class="pg-skill-bonus" id="pg-sk-val-'+def.nome.replace(/ /g,'_')+'">'+(bonus>=0?'+':'')+bonus+'</span></div>';
     }).join('')
     +'</div></div>';
 
@@ -2670,16 +2674,16 @@ function pgRender(id){
   // ── PANE SCHEDA ───────────────────────────────────
   // Tiri salvezza come lista compatta
   var tsHtml = ['FOR','DES','COS','INT','SAG','CAR'].map(function(k){
-    var v   = sc.stats[k];
+    var v   = (pgData[id]&&pgData[id].stats&&pgData[id].stats[k]!==undefined) ? pgData[id].stats[k] : sc.stats[k];
     var mn  = pgModNum(v);
-    var prof= parseInt(sc.bonusCompetenza)||4;
-    var comp= sc.tiriSalvezza && sc.tiriSalvezza[k];
-    var tsBonus = comp ? mn+prof : mn;
+    var profN = parseInt((pgData[id]&&pgData[id].bonusCompetenza)||sc.bonusCompetenza)||2;
+    var comp= (pgData[id]&&pgData[id].tiriSalvezza) ? pgData[id].tiriSalvezza[k] : (sc.tiriSalvezza && sc.tiriSalvezza[k]);
+    var tsBonus = comp ? mn+profN : mn;
     var tsStr   = (tsBonus>=0?'+':'')+tsBonus;
-    return '<div class="pg-ts-row'+(comp?' comp':'')+'">'
-      +'<span class="pg-ts-dot'+(comp?' filled':'')+'"></span>'
+    return '<div class="pg-ts-row'+(comp?' comp':'')+'" data-tsid="'+id+'" data-tsstat="'+k+'" style="cursor:pointer;">'
+      +'<span class="pg-ts-dot'+(comp?' filled':'')+'" id="pg-ts-listdot-'+k+'"></span>'
       +'<span class="pg-ts-name">'+k+'</span>'
-      +'<span class="pg-ts-val">'+tsStr+'</span>'
+      +'<span class="pg-ts-val" id="pg-ts-listval-'+k+'">'+tsStr+'</span>'
       +'</div>';
   }).join('');
 
@@ -2712,15 +2716,18 @@ function pgRender(id){
     +'</div></div>'
     // Equipaggiamento nella colonna sinistra
     +(function(){
+      // Solo oggetti EFFETTIVAMENTE equipaggiati: dmInv + invExtra + magazzino.equipped
       var dmItems = (pgData[id]&&pgData[id].dmInv)?pgData[id].dmInv:sc.inventario.slice();
       var extraItems = (pgData[id]&&pgData[id].inventario)?pgData[id].inventario:[];
-      var allItems = dmItems.concat(extraItems);
-      if(!allItems.length) return '';
+      var magEquip = (pgData[id]&&pgData[id].magazzino)?pgData[id].magazzino.filter(function(c){ return c.equipped; }):[];
+      var allItems = dmItems.concat(extraItems).concat(magEquip);
+      if(!allItems.length) return '<div class="pg-block pg-combat-block" style="width:100%"><div class="pg-block-title">Equipaggiamento</div><div class="pg-empty">Nessun oggetto equipaggiato.</div></div>';
       return '<div class="pg-block pg-combat-block" style="width:100%"><div class="pg-block-title">Equipaggiamento</div>'
         +'<ul class="pg-equip-list">'
         +allItems.map(function(o){
           var nome = typeof o==='string'?o:(o.nome||String(o));
-          return '<li class="pg-equip-item">'+escHtml(nome)+'</li>';
+          var peso = typeof o==='object'&&o.peso ? ' <span style="opacity:.4;font-size:11px;">'+o.peso+' lb</span>' : '';
+          return '<li class="pg-equip-item">'+escHtml(nome)+peso+'</li>';
         }).join('')
         +'</ul></div>';
     })()
@@ -3047,6 +3054,8 @@ function pgDelDM(id,i){
   if(!pgData[id].dmInv) pgData[id].dmInv = CHARS[id].scheda.inventario.slice();
   pgData[id].dmInv.splice(i,1);
   pgRefreshInv(id);
+  var sp2=document.getElementById('pg-pane-scheda');
+  if(sp2&&sp2.classList.contains('on')) pgRender(id);
 }
 
 // Aggiungi oggetto equipaggiato direttamente
@@ -3074,7 +3083,12 @@ function pgMagToggleEquip(id,cid){
   pgEnsure(id);
   if(!pgData[id].magazzino) pgData[id].magazzino=[];
   var c=pgData[id].magazzino.find(function(x){ return x.id===cid; });
-  if(c){ c.equipped=!c.equipped; pgRefreshInv(id); }
+  if(c){
+    c.equipped=!c.equipped;
+    pgRefreshInv(id);
+    var sp=document.getElementById('pg-pane-scheda');
+    if(sp&&sp.classList.contains('on')) pgRender(id);
+  }
 }
 
 function pgMagDelete(id,cid){
@@ -4298,6 +4312,62 @@ function showPersonaggio(id){
 
 var _pgEditMode = false;
 
+// Toggle competenza Tiro Salvezza
+function pgToggleTS(id, stat){
+  pgEnsure(id);
+  if(!pgData[id].tiriSalvezza) pgData[id].tiriSalvezza = Object.assign({}, CHARS[id].scheda.tiriSalvezza||{});
+  pgData[id].tiriSalvezza[stat] = !pgData[id].tiriSalvezza[stat];
+  var comp = pgData[id].tiriSalvezza[stat];
+  // Aggiorna pallino nella stat box
+  var dot = document.getElementById('pg-ts-dot-'+stat);
+  if(dot){ dot.className = 'pg-save-dot'+(comp?' comp':''); }
+  // Aggiorna riga nella lista TS
+  var listDot = document.getElementById('pg-ts-listdot-'+stat);
+  var listRow = listDot ? listDot.closest('.pg-ts-row') : null;
+  var v = (pgData[id].stats&&pgData[id].stats[stat]!==undefined) ? pgData[id].stats[stat] : CHARS[id].scheda.stats[stat];
+  var mn = pgModNum(v);
+  var prof = parseInt((pgData[id].bonusCompetenza)||CHARS[id].scheda.bonusCompetenza)||2;
+  var bonus = comp ? mn+prof : mn;
+  if(listDot){ listDot.className = 'pg-ts-dot'+(comp?' filled':''); }
+  if(listRow){ listRow.className = 'pg-ts-row'+(comp?' comp':''); }
+  var listVal = document.getElementById('pg-ts-listval-'+stat);
+  if(listVal) listVal.textContent = (bonus>=0?'+':'')+bonus;
+}
+
+// Toggle competenza/expertise Abilità
+function pgToggleSkill(id, nomeskill){
+  pgEnsure(id);
+  if(!pgData[id].abilita) pgData[id].abilita = JSON.parse(JSON.stringify(CHARS[id].scheda.abilita||[]));
+  var ALL_SKILLS_MAP = {'Acrobazia':'DES','Addestrare Animali':'SAG','Arcano':'INT','Atletica':'FOR',
+    'Furtività':'DES','Historia':'INT','Inganno':'CAR','Intimidazione':'CAR','Intuizione':'SAG',
+    'Intrattenere':'CAR','Investigare':'INT','Medicina':'SAG','Natura':'INT','Percezione':'SAG',
+    'Persuasione':'CAR','Religione':'INT','Sopravvivenza':'SAG','Storia':'INT'};
+  var idx = pgData[id].abilita.findIndex(function(a){ return a.nome===nomeskill; });
+  if(idx<0){
+    pgData[id].abilita.push({nome:nomeskill, stat:ALL_SKILLS_MAP[nomeskill]||'INT', comp:true, exp:false});
+  } else {
+    var a = pgData[id].abilita[idx];
+    if(!a.comp && !a.exp){ a.comp=true; a.exp=false; }
+    else if(a.comp && !a.exp){ a.comp=false; a.exp=true; }
+    else { a.comp=false; a.exp=false; }
+  }
+  // Aggiorna UI senza re-render completo
+  var dotId = 'pg-sk-dot-'+nomeskill.replace(/ /g,'_');
+  var valId = 'pg-sk-val-'+nomeskill.replace(/ /g,'_');
+  var dot = document.getElementById(dotId);
+  var val = document.getElementById(valId);
+  var skill = pgData[id].abilita.find(function(a){ return a.nome===nomeskill; });
+  var stat = skill ? skill.stat : ALL_SKILLS_MAP[nomeskill]||'INT';
+  var liveStats = pgData[id].stats || CHARS[id].scheda.stats;
+  var base = pgModNum(liveStats[stat]||10);
+  var prof = parseInt((pgData[id].bonusCompetenza)||CHARS[id].scheda.bonusCompetenza)||2;
+  var comp = skill&&skill.comp, exp = skill&&skill.exp;
+  var bonus = exp?base+prof*2:comp?base+prof:base;
+  var dc = exp?'exp':comp?'comp':'';
+  if(dot) dot.className = 'pg-skill-dot'+(dc?' '+dc:'');
+  if(val) val.textContent = (bonus>=0?'+':'')+bonus;
+}
+
 function pgToggleEdit(id){
   _pgEditMode = !_pgEditMode;
   var btn = document.getElementById('pg-btn-modifica');
@@ -4486,6 +4556,22 @@ document.addEventListener('DOMContentLoaded',function(){
   // Save buttons
   document.querySelectorAll('[data-action="save"]').forEach(function(btn){
     btn.addEventListener('click',function(){ saveToFile(this); });
+  });
+  // Delegated click per skill rows (data-sklid/data-sklnm)
+  document.addEventListener('click', function(e){
+    var row = e.target.closest('[data-sklid]');
+    if(row){
+      var sklid = row.getAttribute('data-sklid');
+      var sklnm = row.getAttribute('data-sklnm');
+      if(sklid && sklnm && typeof pgToggleSkill === 'function') pgToggleSkill(sklid, sklnm);
+    }
+    // TS click (stat-save e ts-row)
+    var tsEl = e.target.closest('[data-tsid]');
+    if(tsEl){
+      var tsid = tsEl.getAttribute('data-tsid');
+      var tsst = tsEl.getAttribute('data-tsstat');
+      if(tsid && tsst && typeof pgToggleTS === 'function') pgToggleTS(tsid, tsst);
+    }
   });
   loadEmbeddedData();
   // Ripristina sessione salvata (login automatico al reload)
