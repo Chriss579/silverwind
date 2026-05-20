@@ -3904,25 +3904,47 @@ function npcAvatarHtml(n, size, borderCss){
   return '<div class="npc-avatar-wrap" style="' + (borderCss||'') + 'background-image:url(\'' + n.img.replace(/'/g,"\\'") + '\');background-size:' + bgSize + ';background-position:' + bgPosX + ' ' + bgPosY + ';background-repeat:no-repeat;"></div>';
 }
 
+function _npcBgStyle(n, size){
+  // Returns {bgSize, bpx, bpy} for background-size / background-position in px
+  // Works correctly for both square and non-square images
+  if(!n || !n.img) return null;
+  var crop = n.crop;
+  if(crop && crop.natW && crop.natH && crop.r > 0){
+    var natW = crop.natW;
+    var natH = crop.natH;
+    var cxFrac = crop.cx;  // center x as fraction of image width
+    var cyFrac = crop.cy;  // center y as fraction of image height
+    var rFrac  = crop.r;   // radius as fraction of min(natW,natH)
+    var natMin = Math.min(natW, natH);
+    // The circle radius in natural px
+    var rNat = rFrac * natMin;
+    // To fill the avatar (size/2 px radius), scale so rNat -> size/2
+    var s = (size / 2) / rNat;
+    // Rendered image dimensions
+    var rW = natW * s;
+    var rH = natH * s;
+    // background-position: offset of top-left of rendered image
+    var bpx = Math.round(size / 2 - cxFrac * rW);
+    var bpy = Math.round(size / 2 - cyFrac * rH);
+    return {bgSize: Math.round(rW) + 'px ' + Math.round(rH) + 'px', bpx: bpx, bpy: bpy};
+  }
+  // Fallback: no crop data, use imgPos/imgR with square assumption
+  var imgR = (n.imgR !== undefined && n.imgR > 0) ? n.imgR : 50;
+  var scaleFactor = 50 / imgR;
+  var parts = (n.imgPos || '50% 50%').split(' ');
+  var cxFrac2 = parseFloat(parts[0]) / 100 || 0.5;
+  var cyFrac2 = parseFloat(parts[1]) / 100 || 0.5;
+  var rendW = scaleFactor * size;
+  var bpx2 = Math.round(size / 2 - cxFrac2 * rendW);
+  var bpy2 = Math.round(size / 2 - cyFrac2 * rendW);
+  return {bgSize: Math.round(scaleFactor * 100) + '%', bpx: bpx2, bpy: bpy2};
+}
+
 function npcAvatarWrapHtml(n, size, wrapClass, borderColor){
   if(!n || !n.img) return '<div class="' + wrapClass + '-ph" style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:var(--bg3);border:2px solid '+(borderColor||'var(--bdr)')+';display:flex;align-items:center;justify-content:center;font-size:'+(size*0.38)+'px;color:var(--textd);">&#128100;</div>';
-  var pos  = n.imgPos || '50% 50%';
-  var imgR = (n.imgR !== undefined && n.imgR > 0) ? n.imgR : 50;
-  // scaleFactor: how much bigger the image is than the avatar circle
-  var scaleFactor = 50 / imgR;
-  // rendered image size in px (square, since background-size:X% on a square container)
-  var rendW = scaleFactor * size;
-  var rendH = scaleFactor * size;
-  // center point as fraction of image
-  var parts = pos.split(' ');
-  var cxFrac = parseFloat(parts[0]) / 100 || 0.5;
-  var cyFrac = parseFloat(parts[1]) / 100 || 0.5;
-  // background-position in px: offset of top-left of rendered image from top-left of container
-  // so that the chosen center lands at the middle of the container
-  var bpx = Math.round(size / 2 - cxFrac * rendW);
-  var bpy = Math.round(size / 2 - cyFrac * rendH);
-  var bgSize = Math.round(scaleFactor * 100) + '%';
-  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;border:2px solid '+(borderColor||'var(--bdr)')+';overflow:hidden;flex-shrink:0;background-color:var(--bg3);background-image:url('+escHtml(n.img||'|')+');background-size:'+bgSize+';background-position:'+bpx+'px '+bpy+'px;background-repeat:no-repeat;margin:0 auto 10px;display:block;"></div>';
+  var bg = _npcBgStyle(n, size);
+  if(!bg) return '<div class="' + wrapClass + '-ph" style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:var(--bg3);border:2px solid '+(borderColor||'var(--bdr)')+';display:flex;align-items:center;justify-content:center;font-size:'+(size*0.38)+'px;color:var(--textd);">&#128100;</div>';
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;border:2px solid '+(borderColor||'var(--bdr)')+';overflow:hidden;flex-shrink:0;background-color:var(--bg3);background-image:url('+escHtml(n.img||'')+');background-size:'+bg.bgSize+';background-position:'+bg.bpx+'px '+bg.bpy+'px;background-repeat:no-repeat;margin:0 auto 10px;display:block;"></div>';
 }
 
 function escHtml(s){
@@ -3988,6 +4010,7 @@ function npcOpenModal(id){
   window._npcEditTags = (n.tags||[]).slice();
   window._npcImgPos = n.imgPos||'50% 50%';
   window._npcImgR   = n.imgR!==undefined ? n.imgR : 50;
+  window._npcCrop   = n.crop||null;
   var ov = document.createElement('div');
   ov.className='npc-modal-overlay'; ov.id='npcModalOv';
   ov.onclick=function(e){if(e.target===ov)npcCloseModal();};
@@ -4045,18 +4068,11 @@ function npcOpenModal(id){
 function _npcUpdateModalPreview(){
   var prev = document.getElementById('npcModalAvatarPrev');
   if(!prev) return;
-  var size = 100; // modal avatar is 100px
-  var imgR = (window._npcImgR !== undefined && window._npcImgR > 0) ? window._npcImgR : 50;
-  var scaleFactor = 50 / imgR;
-  var rendW = scaleFactor * size;
-  var rendH = scaleFactor * size;
-  var parts = (window._npcImgPos || '50% 50%').split(' ');
-  var cxFrac = parseFloat(parts[0]) / 100 || 0.5;
-  var cyFrac = parseFloat(parts[1]) / 100 || 0.5;
-  var bpx = Math.round(size / 2 - cxFrac * rendW);
-  var bpy = Math.round(size / 2 - cyFrac * rendH);
-  prev.style.backgroundSize = Math.round(scaleFactor * 100) + '%';
-  prev.style.backgroundPosition = bpx + 'px ' + bpy + 'px';
+  var n = {img: (document.getElementById('npcModalImg')||{}).value||'', imgPos: window._npcImgPos, imgR: window._npcImgR, crop: window._npcCrop};
+  var bg = _npcBgStyle(n, 100);
+  if(!bg) return;
+  prev.style.backgroundSize = bg.bgSize;
+  prev.style.backgroundPosition = bg.bpx + 'px ' + bg.bpy + 'px';
 }
 
 function npcPreviewImg(val){
@@ -4127,10 +4143,11 @@ function npcSave(){
   var tags=window._npcEditTags.slice();
   if(!npcData[npcCurrentChar]) npcData[npcCurrentChar]=[];
   var list=npcData[npcCurrentChar];
+  var crop = window._npcCrop || null;
   if(npcEditingId){
-    for(var i=0;i<list.length;i++){if(list[i].id===npcEditingId){list[i]={id:npcEditingId,nome:nome,img:img,imgPos:imgPos,imgR:imgR,tags:tags,note:note};break;}}
+    for(var i=0;i<list.length;i++){if(list[i].id===npcEditingId){list[i]={id:npcEditingId,nome:nome,img:img,imgPos:imgPos,imgR:imgR,crop:crop,tags:tags,note:note};break;}}
   } else {
-    list.push({id:'npc_'+Date.now(),nome:nome,img:img,imgPos:imgPos,imgR:imgR,tags:tags,note:note});
+    list.push({id:'npc_'+Date.now(),nome:nome,img:img,imgPos:imgPos,imgR:imgR,crop:crop,tags:tags,note:note});
   }
   npcCloseModal(); npcRender(document.getElementById('npcSearch').value);
  
@@ -4268,11 +4285,18 @@ function npcOpenCropOverlay(src){
     window.addEventListener('touchend', onUp);
 
     document.getElementById('npcCropConfirm').addEventListener('click', function(){
-      var px2  = Math.round(cx / cW * 100);
-      var py2  = Math.round(cy / cH * 100);
-      var rPct = Math.round(r / minDim * 100);
-      window._npcImgPos = px2 + '% ' + py2 + '%';
-      window._npcImgR   = rPct;
+      // Save as fractions of the NATURAL image dimensions
+      // cx/cy are in scaled display px; natW/natH are natural px
+      window._npcCrop = {
+        cx: cx / cW,          // center x as fraction of image width
+        cy: cy / cH,          // center y as fraction of image height
+        r:  r / minDim,       // radius as fraction of min(display dim) = min(natW,natH)
+        natW: natW,
+        natH: natH
+      };
+      // Legacy fields for backward compat
+      window._npcImgPos = Math.round(cx/cW*100) + '% ' + Math.round(cy/cH*100) + '%';
+      window._npcImgR   = Math.round(r / minDim * 100);
       _npcUpdateModalPreview();
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('touchmove', onMove);
