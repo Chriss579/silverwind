@@ -4072,153 +4072,142 @@ function npcCloseModal(){ var ov=document.getElementById('npcModalOv'); if(ov)ov
 function npcOpenCropOverlay(src){
   var ov = document.createElement('div');
   ov.className='npc-crop-overlay'; ov.id='npcCropOv';
-  ov.innerHTML=
-    '<div class="npc-crop-title">Riposiziona immagine</div>'
-    +'<div class="npc-crop-canvas-wrap" id="npcCropWrap"></div>'
-    +'<div class="npc-crop-hint">Trascina il cerchio &mdash; trascina il bordo dorato per ridimensionare</div>'
-    +'<div class="npc-crop-btns">'
-    +'<button class="npc-crop-cancel" id="npcCropCancel">Annulla</button>'
-    +'<button class="npc-crop-confirm" id="npcCropConfirm">Conferma</button>'
-    +'</div>';
   document.body.appendChild(ov);
 
-  document.getElementById('npcCropCancel').addEventListener('click', function(){ ov.remove(); });
+  document.getElementById('npcCropCancel') && document.getElementById('npcCropCancel').addEventListener('click', function(){ ov.remove(); });
 
-  var wrap = document.getElementById('npcCropWrap');
   var maxW = Math.min(window.innerWidth - 48, 720);
-  var maxH = Math.min(window.innerHeight - 180, 580);
+  var maxH = Math.min(window.innerHeight - 200, 560);
 
-  function initCrop(natW, natH){
-    var scale = Math.min(maxW / natW, maxH / natH, 1);
+  // Load image to get natural size
+  var imgEl = new Image();
+  imgEl.onload = function(){
+    var natW = imgEl.naturalWidth;
+    var natH = imgEl.naturalHeight;
+    var scale = Math.min(maxW/natW, maxH/natH, 1);
     var cW = Math.round(natW * scale);
     var cH = Math.round(natH * scale);
 
-    // Single canvas receives all interaction
-    var cvs = document.createElement('canvas');
-    cvs.width  = cW;
-    cvs.height = cH;
-    cvs.style.cssText = 'display:block;cursor:grab;border-radius:3px;';
-    wrap.style.lineHeight = '0';
-    wrap.appendChild(cvs);
-    var ctx = cvs.getContext('2d');
+    // Build DOM overlay
+    ov.innerHTML = '<div class="npc-crop-title">Riposiziona immagine</div>'
+      +'<div id="npcCropWrap" style="position:relative;width:'+cW+'px;height:'+cH+'px;border-radius:3px;overflow:hidden;flex-shrink:0;cursor:grab;">'
+      +'<img id="npcCropImg" src="'+src+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;display:block;">'
+      +'<div id="npcCropMaskTop"    style="position:absolute;left:0;right:0;top:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
+      +'<div id="npcCropMaskBottom" style="position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
+      +'<div id="npcCropMaskLeft"   style="position:absolute;top:0;bottom:0;left:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
+      +'<div id="npcCropMaskRight"  style="position:absolute;top:0;bottom:0;right:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
+      +'<div id="npcCropRing" style="position:absolute;border-radius:50%;border:2.5px solid rgba(201,168,76,0.95);box-sizing:border-box;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.3);"></div>'
+      +'<div id="npcCropHandle" style="position:absolute;width:16px;height:16px;border-radius:50%;background:rgba(201,168,76,1);border:1px solid rgba(0,0,0,0.35);transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>'
+      +'</div>'
+      +'<div class="npc-crop-hint">Trascina il cerchio &mdash; trascina il bordo dorato per ridimensionare</div>'
+      +'<div class="npc-crop-btns">'
+      +'<button class="npc-crop-cancel" id="npcCropCancel">Annulla</button>'
+      +'<button class="npc-crop-confirm" id="npcCropConfirm">Conferma</button>'
+      +'</div>';
 
-    // Draw image once into an offscreen canvas so we can composite
-    var offImg = document.createElement('canvas');
-    offImg.width = cW; offImg.height = cH;
-    var offCtx = offImg.getContext('2d');
-    offCtx.drawImage(imgEl, 0, 0, cW, cH);
+    document.getElementById('npcCropCancel').addEventListener('click', function(){ ov.remove(); });
 
-    // Restore circle from saved state
+    // Restore saved position
     var posStr = window._npcImgPos || '50% 50%';
     var parts  = posStr.split(' ');
     var pxPct  = parseFloat(parts[0]) || 50;
     var pyPct  = parseFloat(parts[1]) || 50;
-    var savedR = (window._npcImgR !== undefined) ? window._npcImgR : 40;
-
+    var savedR = (window._npcImgR !== undefined) ? window._npcImgR : 38;
     var minDim = Math.min(cW, cH);
-    var cx = cW * pxPct / 100;
-    var cy = cH * pyPct / 100;
     var rMin = 24;
     var rMax = minDim * 0.49;
+    var cx = cW * pxPct / 100;
+    var cy = cH * pyPct / 100;
     var r  = Math.max(rMin, Math.min(rMax, minDim * savedR / 100));
 
     var HANDLE_ANG = Math.PI * 0.35;
-    function handlePos(){ return {x: cx + Math.cos(HANDLE_ANG)*r, y: cy + Math.sin(HANDLE_ANG)*r}; }
 
-    function draw(){
-      // 1. clear
-      ctx.clearRect(0, 0, cW, cH);
-      // 2. full image
-      ctx.drawImage(offImg, 0, 0);
-      // 3. dark mask over whole image
-      ctx.fillStyle = 'rgba(0,0,0,0.76)';
-      ctx.fillRect(0, 0, cW, cH);
-      // 4. cut circle — draw image again clipped to circle
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, 2*Math.PI);
-      ctx.clip();
-      ctx.drawImage(offImg, 0, 0);
-      ctx.restore();
-      // 5. gold ring
-      ctx.strokeStyle = 'rgba(201,168,76,0.95)';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, 2*Math.PI);
-      ctx.stroke();
-      // 6. resize handle dot
-      var hp = handlePos();
-      ctx.fillStyle = 'rgba(201,168,76,1)';
-      ctx.beginPath();
-      ctx.arc(hp.x, hp.y, 8, 0, 2*Math.PI);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+    function updateDOM(){
+      var ring   = document.getElementById('npcCropRing');
+      var handle = document.getElementById('npcCropHandle');
+      var mTop   = document.getElementById('npcCropMaskTop');
+      var mBot   = document.getElementById('npcCropMaskBottom');
+      var mLft   = document.getElementById('npcCropMaskLeft');
+      var mRgt   = document.getElementById('npcCropMaskRight');
+      if(!ring) return;
+      // Ring
+      ring.style.left   = (cx - r) + 'px';
+      ring.style.top    = (cy - r) + 'px';
+      ring.style.width  = (r * 2) + 'px';
+      ring.style.height = (r * 2) + 'px';
+      // Handle
+      var hx = cx + Math.cos(HANDLE_ANG) * r;
+      var hy = cy + Math.sin(HANDLE_ANG) * r;
+      handle.style.left = hx + 'px';
+      handle.style.top  = hy + 'px';
+      // Masks: top, bottom, left strip, right strip — rectangle minus circle bounding box
+      var bx = cx - r, by = cy - r, bw = r * 2, bh = r * 2;
+      // top bar
+      mTop.style.height = Math.max(0, by) + 'px';
+      // bottom bar
+      mBot.style.top    = Math.min(cH, by + bh) + 'px';
+      mBot.style.height = Math.max(0, cH - (by + bh)) + 'px';
+      // left strip (between top and bottom bars)
+      mLft.style.top    = Math.max(0, by) + 'px';
+      mLft.style.height = Math.min(bh, cH - Math.max(0,by)) + 'px';
+      mLft.style.width  = Math.max(0, bx) + 'px';
+      // right strip
+      mRgt.style.top    = Math.max(0, by) + 'px';
+      mRgt.style.height = Math.min(bh, cH - Math.max(0,by)) + 'px';
+      mRgt.style.left   = Math.min(cW, bx + bw) + 'px';
+      mRgt.style.width  = Math.max(0, cW - (bx + bw)) + 'px';
     }
-    draw();
+    updateDOM();
 
-    // Drag state
+    var wrap2 = document.getElementById('npcCropWrap');
     var dragMode = null;
     var dragStartX, dragStartY, dragStartCx, dragStartCy;
 
-    function clientPos(e){
-      return e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY}
-                       : {x:e.clientX, y:e.clientY};
-    }
     function localPos(e){
-      var rect = cvs.getBoundingClientRect();
-      var cl   = clientPos(e);
-      return {x: (cl.x - rect.left) * (cW / rect.width),
-              y: (cl.y - rect.top)  * (cH / rect.height)};
+      var rect = wrap2.getBoundingClientRect();
+      var cl = e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
+      return {x: cl.x - rect.left, y: cl.y - rect.top};
     }
-
-    cvs.addEventListener('mousedown', onDown);
-    cvs.addEventListener('touchstart', onDown, {passive:false});
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, {passive:false});
-    window.addEventListener('mouseup',   onUp);
-    window.addEventListener('touchend',  onUp);
 
     function onDown(e){
       e.preventDefault();
       var p  = localPos(e);
-      var hp = handlePos();
-      var dh = Math.sqrt((p.x-hp.x)*(p.x-hp.x)+(p.y-hp.y)*(p.y-hp.y));
-      if(dh <= 16){
+      var hx = cx + Math.cos(HANDLE_ANG) * r;
+      var hy = cy + Math.sin(HANDLE_ANG) * r;
+      var dh = Math.sqrt((p.x-hx)*(p.x-hx)+(p.y-hy)*(p.y-hy));
+      if(dh <= 18){
         dragMode = 'resize';
       } else {
         var dc = Math.sqrt((p.x-cx)*(p.x-cx)+(p.y-cy)*(p.y-cy));
         dragMode = (dc <= r) ? 'move' : null;
       }
       if(!dragMode) return;
-      dragStartX  = p.x; dragStartY  = p.y;
-      dragStartCx = cx;  dragStartCy = cy;
-      cvs.style.cursor = dragMode==='move' ? 'grabbing' : 'nw-resize';
+      dragStartX=p.x; dragStartY=p.y; dragStartCx=cx; dragStartCy=cy;
+      wrap2.style.cursor = dragMode==='move' ? 'grabbing' : 'nw-resize';
     }
     function onMove(e){
       if(!dragMode) return;
       e.preventDefault();
       var p = localPos(e);
-      if(dragMode === 'move'){
-        var nx = dragStartCx + (p.x - dragStartX);
-        var ny = dragStartCy + (p.y - dragStartY);
-        cx = Math.max(r, Math.min(cW - r, nx));
-        cy = Math.max(r, Math.min(cH - r, ny));
+      if(dragMode==='move'){
+        cx = Math.max(r, Math.min(cW-r, dragStartCx + (p.x-dragStartX)));
+        cy = Math.max(r, Math.min(cH-r, dragStartCy + (p.y-dragStartY)));
       } else {
-        var dx = p.x - cx;
-        var dy = p.y - cy;
-        r  = Math.max(rMin, Math.min(rMax, Math.sqrt(dx*dx+dy*dy)));
-        cx = Math.max(r, Math.min(cW - r, cx));
-        cy = Math.max(r, Math.min(cH - r, cy));
+        var dx=p.x-cx, dy=p.y-cy;
+        r = Math.max(rMin, Math.min(rMax, Math.sqrt(dx*dx+dy*dy)));
+        cx = Math.max(r, Math.min(cW-r, cx));
+        cy = Math.max(r, Math.min(cH-r, cy));
       }
-      draw();
+      updateDOM();
     }
-    function onUp(){
-      if(!dragMode) return;
-      dragMode = null;
-      cvs.style.cursor = 'grab';
-    }
+    function onUp(){ dragMode=null; wrap2.style.cursor='grab'; }
+
+    wrap2.addEventListener('mousedown', onDown);
+    wrap2.addEventListener('touchstart', onDown, {passive:false});
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
 
     document.getElementById('npcCropConfirm').addEventListener('click', function(){
       var px2  = Math.round(cx / cW * 100);
@@ -4228,22 +4217,14 @@ function npcOpenCropOverlay(src){
       window._npcImgR   = rPct;
       var prev = document.getElementById('npcModalAvatarPrev');
       if(prev) prev.style.objectPosition = window._npcImgPos;
-      // clean up window listeners
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('mouseup',   onUp);
-      window.removeEventListener('touchend',  onUp);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchend', onUp);
       ov.remove();
     });
-  }
-
-  var imgEl = new Image();
-  imgEl.crossOrigin = 'anonymous';
-  imgEl.onload = function(){ initCrop(imgEl.naturalWidth, imgEl.naturalHeight); };
-  // Handle cached images
-  if(imgEl.complete && imgEl.naturalWidth){ initCrop(imgEl.naturalWidth, imgEl.naturalHeight); }
+  };
   imgEl.src = src;
-  if(imgEl.complete && imgEl.naturalWidth && !wrap.firstChild){ initCrop(imgEl.naturalWidth, imgEl.naturalHeight); }
 }
 
 /* ══ GITHUB SAVE CSS ══ */
