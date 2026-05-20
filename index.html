@@ -3908,12 +3908,21 @@ function npcAvatarWrapHtml(n, size, wrapClass, borderColor){
   if(!n || !n.img) return '<div class="' + wrapClass + '-ph" style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:var(--bg3);border:2px solid '+(borderColor||'var(--bdr)')+';display:flex;align-items:center;justify-content:center;font-size:'+(size*0.38)+'px;color:var(--textd);">&#128100;</div>';
   var pos  = n.imgPos || '50% 50%';
   var imgR = (n.imgR !== undefined && n.imgR > 0) ? n.imgR : 50;
+  // scaleFactor: how much bigger the image is than the avatar circle
   var scaleFactor = 50 / imgR;
-  var bgSize = Math.round(scaleFactor * 100) + '%';
+  // rendered image size in px (square, since background-size:X% on a square container)
+  var rendW = scaleFactor * size;
+  var rendH = scaleFactor * size;
+  // center point as fraction of image
   var parts = pos.split(' ');
-  var px = parseFloat(parts[0]) || 50;
-  var py = parseFloat(parts[1]) || 50;
-  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;border:2px solid '+(borderColor||'var(--bdr)')+';overflow:hidden;flex-shrink:0;background-color:var(--bg3);background-image:url(\''+escHtml(n.img||'')+'\');background-size:'+bgSize+';background-position:'+px+'% '+py+'%;background-repeat:no-repeat;margin:0 auto 10px;display:block;"></div>';
+  var cxFrac = parseFloat(parts[0]) / 100 || 0.5;
+  var cyFrac = parseFloat(parts[1]) / 100 || 0.5;
+  // background-position in px: offset of top-left of rendered image from top-left of container
+  // so that the chosen center lands at the middle of the container
+  var bpx = Math.round(size / 2 - cxFrac * rendW);
+  var bpy = Math.round(size / 2 - cyFrac * rendH);
+  var bgSize = Math.round(scaleFactor * 100) + '%';
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;border:2px solid '+(borderColor||'var(--bdr)')+';overflow:hidden;flex-shrink:0;background-color:var(--bg3);background-image:url('+escHtml(n.img||'|')+');background-size:'+bgSize+';background-position:'+bpx+'px '+bpy+'px;background-repeat:no-repeat;margin:0 auto 10px;display:block;"></div>';
 }
 
 function escHtml(s){
@@ -4036,11 +4045,18 @@ function npcOpenModal(id){
 function _npcUpdateModalPreview(){
   var prev = document.getElementById('npcModalAvatarPrev');
   if(!prev) return;
+  var size = 100; // modal avatar is 100px
   var imgR = (window._npcImgR !== undefined && window._npcImgR > 0) ? window._npcImgR : 50;
-  var bgSize = Math.round(50 / imgR * 100) + '%';
-  var pos = window._npcImgPos || '50% 50%';
-  prev.style.backgroundSize = bgSize;
-  prev.style.backgroundPosition = pos;
+  var scaleFactor = 50 / imgR;
+  var rendW = scaleFactor * size;
+  var rendH = scaleFactor * size;
+  var parts = (window._npcImgPos || '50% 50%').split(' ');
+  var cxFrac = parseFloat(parts[0]) / 100 || 0.5;
+  var cyFrac = parseFloat(parts[1]) / 100 || 0.5;
+  var bpx = Math.round(size / 2 - cxFrac * rendW);
+  var bpy = Math.round(size / 2 - cyFrac * rendH);
+  prev.style.backgroundSize = Math.round(scaleFactor * 100) + '%';
+  prev.style.backgroundPosition = bpx + 'px ' + bpy + 'px';
 }
 
 function npcPreviewImg(val){
