@@ -2560,7 +2560,7 @@ function pgRender(id){
   // ── STAT + TS ─────────────────────────────────────
   var statKeys = ['FOR','DES','COS','INT','SAG','CAR'];
   var statsHtml = statKeys.map(function(k){
-    var v   = sc.stats[k];
+    var v   = (pgData[id]&&pgData[id].stats&&pgData[id].stats[k]!==undefined) ? pgData[id].stats[k] : sc.stats[k];
     var mn  = pgModNum(v);
     var mod = (mn>=0?'+':'')+mn;
     var cls = mn>0?'pos':mn<0?'neg':'zer';
@@ -2947,7 +2947,7 @@ function pgSwitchTab(id,tab){
       btn.style.display=''; btn.textContent='✏ Modifica'; btn.classList.remove('saving');
       _pgEditMode=false;
     } else if(tab==='inventario'||tab==='backstory'){
-      btn.style.display=''; btn.textContent='☁ Salva'; btn.classList.add('saving');
+      btn.style.display=''; btn.textContent='☁ Salva'; btn.classList.remove('saving');
       _pgEditMode=false;
     } else {
       btn.style.display='none';
