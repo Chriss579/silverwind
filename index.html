@@ -320,7 +320,8 @@ body{background:var(--bg);color:var(--text);font-family:'Lora',Georgia,serif;fon
 /* Modal visualizzazione NPC/Appunti */
 .view-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
 .view-modal{background:var(--bg2);border:1px solid var(--bdrh);border-radius:6px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:36px;}
-.view-modal-avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--goldd);display:block;margin:0 auto 20px;}
+.view-modal-avatar-wrap{width:100px;height:100px;border-radius:50%;border:2px solid var(--goldd);margin:0 auto 20px;background:var(--bg3);overflow:hidden;position:relative;}
+.view-modal-avatar{position:absolute;transform-origin:center center;}
 .view-modal-avatar-ph{width:100px;height:100px;border-radius:50%;background:var(--bg3);border:2px solid var(--goldd);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--textd);margin:0 auto 20px;}
 .view-modal-name{font-family:'Cinzel Decorative',cursive;font-size:22px;color:var(--silverh);text-align:center;margin-bottom:6px;}
 .view-modal-title{font-family:'Cinzel Decorative',cursive;font-size:20px;color:var(--silverh);margin-bottom:6px;}
@@ -349,7 +350,8 @@ body{background:var(--bg);color:var(--text);font-family:'Lora',Georgia,serif;fon
 .npc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,rgba(201,168,76,0),rgba(201,168,76,0.4),rgba(201,168,76,0));border-radius:6px 6px 0 0;opacity:0;transition:opacity .25s;}
 .npc-card:hover{border-color:rgba(201,168,76,0.5);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4);}
 .npc-card:hover::before{opacity:1;}
-.npc-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr);margin:0 auto 10px;display:block;background:var(--bg3);}
+.npc-avatar-wrap{width:72px;height:72px;border-radius:50%;border:2px solid var(--bdr);margin:0 auto 10px;background:var(--bg3);overflow:hidden;position:relative;flex-shrink:0;}
+.npc-avatar{position:absolute;transform-origin:center center;}
 .npc-avatar-ph{width:72px;height:72px;border-radius:50%;background:var(--bg3);border:2px solid var(--bdr);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--textd);}
 .npc-name{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--silver);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .npc-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
@@ -3829,9 +3831,8 @@ function viewNPC(id){
   var ov = document.createElement('div');
   ov.className='view-modal-overlay'; ov.id='viewModalOv';
   ov.onclick=function(e){if(e.target===ov)closeViewModal();};
-  var av = n.img
-    ? '<img class="view-modal-avatar" src="'+escHtml(n.img)+'" onclick="npcImgPopup(\''+escHtml(n.img)+'\')" style="cursor:zoom-in;object-position:'+escHtml(n.imgPos||'50% 50%')+'" title="Clicca per ingrandire">'
-    : '<div class="view-modal-avatar-ph">&#128100;</div>';
+  var avClick = n.img ? ' onclick="npcImgPopup(\''+escHtml(n.img)+'\')" style="cursor:zoom-in;"' : '';
+  var av = npcAvatarWrapHtml(n, 100, 'view-modal-avatar', 'var(--goldd)');
   var tags = (n.tags||[]).map(function(t){return '<span class="npc-tag">'+escHtml(t)+'</span>';}).join('');
   var note = n.note ? '<div class="view-modal-divider"></div><div class="view-modal-note">'+escHtml(n.note)+'</div>' : '';
   ov.innerHTML = '<div class="view-modal">'
@@ -3874,6 +3875,47 @@ var appuntiData = {};
 var npcCurrentChar = null;
 var npcEditingId = null;
 
+function npcAvatarHtml(n, size, borderCss){
+  // size: diameter in px (72 for card, 100 for modal)
+  // Returns wrapper+img HTML with correct zoom from imgPos/imgR
+  if(!n.img) return '';
+  var pos  = n.imgPos || '50% 50%';
+  var imgR = (n.imgR !== undefined) ? n.imgR : 50; // % of min(natW,natH)
+  var half = size / 2;
+  // imgR is % of min(natDim) at display scale.
+  // scale factor: half-avatar-px / (imgR% of half-display-minDim)
+  // Since we don't know natW/natH here, we work purely in %:
+  // The circle covers imgR% of min display dim → to fill the avatar,
+  // the image must be scaled so that imgR% of its min-dim = half px.
+  // Equivalently: image display size = size * (50 / imgR)
+  var scaleFactor = 50 / imgR; // e.g. imgR=25 → scale=2x
+  var parts = pos.split(' ');
+  var px = parseFloat(parts[0]) || 50; // % along width
+  var py = parseFloat(parts[1]) || 50; // % along height
+  // We'll use a known-size trick: set img to scaleFactor*size square,
+  // then translate so the chosen point aligns to center of wrapper.
+  // imgW = imgH = scaleFactor * size (for square images)
+  // For non-square: we use object-fit:cover on the img itself at the scaled size,
+  // then shift by the position %.
+  // Simpler: use background-image on the wrapper.
+  var bgSize = Math.round(scaleFactor * 100) + '%';
+  var bgPosX = px + '%';
+  var bgPosY = py + '%';
+  return '<div class="npc-avatar-wrap" style="' + (borderCss||'') + 'background-image:url(\'' + n.img.replace(/'/g,"\\'") + '\');background-size:' + bgSize + ';background-position:' + bgPosX + ' ' + bgPosY + ';background-repeat:no-repeat;"></div>';
+}
+
+function npcAvatarWrapHtml(n, size, wrapClass, borderColor){
+  if(!n || !n.img) return '<div class="' + wrapClass + '-ph" style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:var(--bg3);border:2px solid '+(borderColor||'var(--bdr)')+';display:flex;align-items:center;justify-content:center;font-size:'+(size*0.38)+'px;color:var(--textd);">&#128100;</div>';
+  var pos  = n.imgPos || '50% 50%';
+  var imgR = (n.imgR !== undefined && n.imgR > 0) ? n.imgR : 50;
+  var scaleFactor = 50 / imgR;
+  var bgSize = Math.round(scaleFactor * 100) + '%';
+  var parts = pos.split(' ');
+  var px = parseFloat(parts[0]) || 50;
+  var py = parseFloat(parts[1]) || 50;
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;border:2px solid '+(borderColor||'var(--bdr)')+';overflow:hidden;flex-shrink:0;background-color:var(--bg3);background-image:url(\''+escHtml(n.img||'')+'\');background-size:'+bgSize+';background-position:'+px+'% '+py+'%;background-repeat:no-repeat;margin:0 auto 10px;display:block;"></div>';
+}
+
 function escHtml(s){
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -3899,7 +3941,7 @@ function npcRender(filter){
     return;
   }
   grid.innerHTML = list.map(function(n){
-    var av = n.img ? '<img class="npc-avatar" src="'+escHtml(n.img)+'" style="object-position:'+escHtml(n.imgPos||'50% 50%')+'">' : '<div class="npc-avatar-ph">&#128100;</div>';
+    var av = npcAvatarWrapHtml(n, 72, 'npc-avatar', 'var(--bdr)');
     var tg = (n.tags||[]).slice(0,3).map(function(t){ return '<span class="npc-tag">'+escHtml(t)+'</span>'; }).join('');
     return '<div class="npc-card" data-id="'+escHtml(n.id)+'">'+av
       +'<div class="npc-name">'+escHtml(n.nome)+'</div>'
@@ -3943,8 +3985,11 @@ function npcOpenModal(id){
   var tgH = window._npcEditTags.map(function(t,i){
     return '<span class="npc-tag-edit">'+escHtml(t)+'<span class="npc-tag-del" data-idx="'+i+'"> &#215;</span></span>';
   }).join('');
+  var _avBgSize = Math.round(50/(window._npcImgR||50)*100)+'%';
+  var _avBgPos  = escHtml(window._npcImgPos);
+  var _avBgUrl  = escHtml(n.img);
   var avH = n.img
-    ? '<img class="npc-modal-avatar" id="npcModalAvatarPrev" src="'+escHtml(n.img)+'" style="object-position:'+escHtml(window._npcImgPos)+'">'
+    ? '<div id="npcModalAvatarPrev" style="width:100px;height:100px;border-radius:50%;border:2px solid var(--goldd);overflow:hidden;background-color:var(--bg3);background-image:url('+_avBgUrl+');background-size:'+_avBgSize+';background-position:'+_avBgPos+';background-repeat:no-repeat;display:block;margin:0 auto;"></div>'
     : '<div class="npc-modal-avatar-ph" id="npcModalAvatarPh">&#128100;</div>';
   var repBtn = n.img ? '<button class="npc-reposition-btn" id="npcRepBtn">&#9678; Riposiziona</button>' : '';
   ov.innerHTML='<div class="npc-modal">'
@@ -3988,6 +4033,16 @@ function npcOpenModal(id){
   });
 }
 
+function _npcUpdateModalPreview(){
+  var prev = document.getElementById('npcModalAvatarPrev');
+  if(!prev) return;
+  var imgR = (window._npcImgR !== undefined && window._npcImgR > 0) ? window._npcImgR : 50;
+  var bgSize = Math.round(50 / imgR * 100) + '%';
+  var pos = window._npcImgPos || '50% 50%';
+  prev.style.backgroundSize = bgSize;
+  prev.style.backgroundPosition = pos;
+}
+
 function npcPreviewImg(val){
   val = (val||'').trim();
   var wrap = document.querySelector('.npc-modal-avatar-wrap');
@@ -3996,12 +4051,15 @@ function npcPreviewImg(val){
   var ph   = document.getElementById('npcModalAvatarPh');
   var repBtn = document.getElementById('npcRepBtn');
   if(val){
-    if(prev){ prev.src=val; prev.style.display='block'; }
-    else {
-      var img2 = document.createElement('img');
-      img2.className='npc-modal-avatar'; img2.id='npcModalAvatarPrev';
-      img2.src=val; img2.style.objectPosition=window._npcImgPos||'50% 50%';
-      wrap.insertBefore(img2, wrap.firstChild);
+    if(prev){
+      prev.style.backgroundImage = 'url(' + val + ')';
+      prev.style.display = 'block';
+    } else {
+      var d = document.createElement('div');
+      d.id = 'npcModalAvatarPrev';
+      d.style.cssText = 'width:100px;height:100px;border-radius:50%;border:2px solid var(--goldd);overflow:hidden;background-color:var(--bg3);background-image:url(' + val + ');background-size:100%;background-position:50% 50%;background-repeat:no-repeat;display:block;margin:0 auto;';
+      wrap.insertBefore(d, wrap.firstChild);
+      prev = d;
     }
     if(ph) ph.style.display='none';
     if(!repBtn){
@@ -4017,6 +4075,8 @@ function npcPreviewImg(val){
       repBtn.style.display='block';
     }
     window._npcImgPos = window._npcImgPos||'50% 50%';
+    window._npcImgR   = window._npcImgR!==undefined ? window._npcImgR : 50;
+    _npcUpdateModalPreview();
   } else {
     if(prev) prev.style.display='none';
     if(ph) ph.style.display='flex';
@@ -4071,141 +4131,123 @@ function npcCloseModal(){ var ov=document.getElementById('npcModalOv'); if(ov)ov
 
 function npcOpenCropOverlay(src){
   var ov = document.createElement('div');
-  ov.className='npc-crop-overlay'; ov.id='npcCropOv';
+  ov.className = 'npc-crop-overlay';
+  ov.id = 'npcCropOv';
   document.body.appendChild(ov);
-
-  document.getElementById('npcCropCancel') && document.getElementById('npcCropCancel').addEventListener('click', function(){ ov.remove(); });
 
   var maxW = Math.min(window.innerWidth - 48, 720);
   var maxH = Math.min(window.innerHeight - 200, 560);
 
-  // Load image to get natural size
   var imgEl = new Image();
   imgEl.onload = function(){
     var natW = imgEl.naturalWidth;
     var natH = imgEl.naturalHeight;
-    var scale = Math.min(maxW/natW, maxH/natH, 1);
+    var scale = Math.min(maxW / natW, maxH / natH, 1);
     var cW = Math.round(natW * scale);
     var cH = Math.round(natH * scale);
+    var minDim = Math.min(cW, cH);
 
-    // Build DOM overlay
-    ov.innerHTML = '<div class="npc-crop-title">Riposiziona immagine</div>'
-      +'<div id="npcCropWrap" style="position:relative;width:'+cW+'px;height:'+cH+'px;border-radius:3px;overflow:hidden;flex-shrink:0;cursor:grab;">'
-      +'<img id="npcCropImg" src="'+src+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;display:block;">'
-      +'<div id="npcCropMaskTop"    style="position:absolute;left:0;right:0;top:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
-      +'<div id="npcCropMaskBottom" style="position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
-      +'<div id="npcCropMaskLeft"   style="position:absolute;top:0;bottom:0;left:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
-      +'<div id="npcCropMaskRight"  style="position:absolute;top:0;bottom:0;right:0;background:rgba(0,0,0,0.78);pointer-events:none;"></div>'
-      +'<div id="npcCropRing" style="position:absolute;border-radius:50%;border:2.5px solid rgba(201,168,76,0.95);box-sizing:border-box;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.3);"></div>'
-      +'<div id="npcCropHandle" style="position:absolute;width:16px;height:16px;border-radius:50%;background:rgba(201,168,76,1);border:1px solid rgba(0,0,0,0.35);transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>'
-      +'</div>'
-      +'<div class="npc-crop-hint">Trascina il cerchio &mdash; trascina il bordo dorato per ridimensionare</div>'
-      +'<div class="npc-crop-btns">'
-      +'<button class="npc-crop-cancel" id="npcCropCancel">Annulla</button>'
-      +'<button class="npc-crop-confirm" id="npcCropConfirm">Conferma</button>'
-      +'</div>';
+    ov.innerHTML =
+      '<div class="npc-crop-title">Riposiziona immagine</div>'
+      + '<div id="npcCropWrap" style="position:relative;width:' + cW + 'px;height:' + cH + 'px;border-radius:3px;overflow:hidden;cursor:grab;flex-shrink:0;">'
+      + '<img src="' + src + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;display:block;">'
+      + '<svg id="npcCropSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 ' + cW + ' ' + cH + '" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs><mask id="npcHoleMask"><rect width="' + cW + '" height="' + cH + '" fill="white"/><circle id="npcMaskCircle" cx="0" cy="0" r="0" fill="black"/></mask></defs>'
+      + '<rect width="' + cW + '" height="' + cH + '" fill="rgba(0,0,0,0.78)" mask="url(#npcHoleMask)"/>'
+      + '<circle id="npcRingCircle" cx="0" cy="0" r="0" fill="none" stroke="rgba(201,168,76,0.95)" stroke-width="2.5"/>'
+      + '<circle id="npcHandleDot" cx="0" cy="0" r="8" fill="rgba(201,168,76,1)" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>'
+      + '</svg>'
+      + '</div>'
+      + '<div class="npc-crop-hint">Trascina il cerchio &mdash; trascina il puntino dorato per ridimensionare</div>'
+      + '<div class="npc-crop-btns">'
+      + '<button class="npc-crop-cancel" id="npcCropCancel">Annulla</button>'
+      + '<button class="npc-crop-confirm" id="npcCropConfirm">Conferma</button>'
+      + '</div>';
 
     document.getElementById('npcCropCancel').addEventListener('click', function(){ ov.remove(); });
 
-    // Restore saved position
     var posStr = window._npcImgPos || '50% 50%';
     var parts  = posStr.split(' ');
     var pxPct  = parseFloat(parts[0]) || 50;
     var pyPct  = parseFloat(parts[1]) || 50;
     var savedR = (window._npcImgR !== undefined) ? window._npcImgR : 38;
-    var minDim = Math.min(cW, cH);
     var rMin = 24;
     var rMax = minDim * 0.49;
     var cx = cW * pxPct / 100;
     var cy = cH * pyPct / 100;
     var r  = Math.max(rMin, Math.min(rMax, minDim * savedR / 100));
+    var HANG = Math.PI * 0.35;
 
-    var HANDLE_ANG = Math.PI * 0.35;
+    var maskCircle  = document.getElementById('npcMaskCircle');
+    var ringCircle  = document.getElementById('npcRingCircle');
+    var handleDot   = document.getElementById('npcHandleDot');
+    var wrap2       = document.getElementById('npcCropWrap');
 
-    function updateDOM(){
-      var ring   = document.getElementById('npcCropRing');
-      var handle = document.getElementById('npcCropHandle');
-      var mTop   = document.getElementById('npcCropMaskTop');
-      var mBot   = document.getElementById('npcCropMaskBottom');
-      var mLft   = document.getElementById('npcCropMaskLeft');
-      var mRgt   = document.getElementById('npcCropMaskRight');
-      if(!ring) return;
-      // Ring
-      ring.style.left   = (cx - r) + 'px';
-      ring.style.top    = (cy - r) + 'px';
-      ring.style.width  = (r * 2) + 'px';
-      ring.style.height = (r * 2) + 'px';
-      // Handle
-      var hx = cx + Math.cos(HANDLE_ANG) * r;
-      var hy = cy + Math.sin(HANDLE_ANG) * r;
-      handle.style.left = hx + 'px';
-      handle.style.top  = hy + 'px';
-      // Masks: top, bottom, left strip, right strip — rectangle minus circle bounding box
-      var bx = cx - r, by = cy - r, bw = r * 2, bh = r * 2;
-      // top bar
-      mTop.style.height = Math.max(0, by) + 'px';
-      // bottom bar
-      mBot.style.top    = Math.min(cH, by + bh) + 'px';
-      mBot.style.height = Math.max(0, cH - (by + bh)) + 'px';
-      // left strip (between top and bottom bars)
-      mLft.style.top    = Math.max(0, by) + 'px';
-      mLft.style.height = Math.min(bh, cH - Math.max(0,by)) + 'px';
-      mLft.style.width  = Math.max(0, bx) + 'px';
-      // right strip
-      mRgt.style.top    = Math.max(0, by) + 'px';
-      mRgt.style.height = Math.min(bh, cH - Math.max(0,by)) + 'px';
-      mRgt.style.left   = Math.min(cW, bx + bw) + 'px';
-      mRgt.style.width  = Math.max(0, cW - (bx + bw)) + 'px';
+    function updateSVG(){
+      var hx = cx + Math.cos(HANG) * r;
+      var hy = cy + Math.sin(HANG) * r;
+      maskCircle.setAttribute('cx', cx);
+      maskCircle.setAttribute('cy', cy);
+      maskCircle.setAttribute('r',  r);
+      ringCircle.setAttribute('cx', cx);
+      ringCircle.setAttribute('cy', cy);
+      ringCircle.setAttribute('r',  r);
+      handleDot.setAttribute('cx', hx);
+      handleDot.setAttribute('cy', hy);
     }
-    updateDOM();
+    updateSVG();
 
-    var wrap2 = document.getElementById('npcCropWrap');
     var dragMode = null;
     var dragStartX, dragStartY, dragStartCx, dragStartCy;
 
     function localPos(e){
       var rect = wrap2.getBoundingClientRect();
-      var cl = e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
+      var cl = e.touches ? {x: e.touches[0].clientX, y: e.touches[0].clientY}
+                         : {x: e.clientX, y: e.clientY};
       return {x: cl.x - rect.left, y: cl.y - rect.top};
     }
 
     function onDown(e){
       e.preventDefault();
       var p  = localPos(e);
-      var hx = cx + Math.cos(HANDLE_ANG) * r;
-      var hy = cy + Math.sin(HANDLE_ANG) * r;
-      var dh = Math.sqrt((p.x-hx)*(p.x-hx)+(p.y-hy)*(p.y-hy));
+      var hx = cx + Math.cos(HANG) * r;
+      var hy = cy + Math.sin(HANG) * r;
+      var dh = Math.sqrt((p.x - hx) * (p.x - hx) + (p.y - hy) * (p.y - hy));
       if(dh <= 18){
         dragMode = 'resize';
       } else {
-        var dc = Math.sqrt((p.x-cx)*(p.x-cx)+(p.y-cy)*(p.y-cy));
+        var dc = Math.sqrt((p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy));
         dragMode = (dc <= r) ? 'move' : null;
       }
       if(!dragMode) return;
-      dragStartX=p.x; dragStartY=p.y; dragStartCx=cx; dragStartCy=cy;
-      wrap2.style.cursor = dragMode==='move' ? 'grabbing' : 'nw-resize';
+      dragStartX = p.x; dragStartY = p.y;
+      dragStartCx = cx; dragStartCy = cy;
+      wrap2.style.cursor = dragMode === 'move' ? 'grabbing' : 'nw-resize';
     }
+
     function onMove(e){
       if(!dragMode) return;
       e.preventDefault();
       var p = localPos(e);
-      if(dragMode==='move'){
-        cx = Math.max(r, Math.min(cW-r, dragStartCx + (p.x-dragStartX)));
-        cy = Math.max(r, Math.min(cH-r, dragStartCy + (p.y-dragStartY)));
+      if(dragMode === 'move'){
+        cx = Math.max(r, Math.min(cW - r, dragStartCx + (p.x - dragStartX)));
+        cy = Math.max(r, Math.min(cH - r, dragStartCy + (p.y - dragStartY)));
       } else {
-        var dx=p.x-cx, dy=p.y-cy;
-        r = Math.max(rMin, Math.min(rMax, Math.sqrt(dx*dx+dy*dy)));
-        cx = Math.max(r, Math.min(cW-r, cx));
-        cy = Math.max(r, Math.min(cH-r, cy));
+        var dx = p.x - cx;
+        var dy = p.y - cy;
+        r = Math.max(rMin, Math.min(rMax, Math.sqrt(dx * dx + dy * dy)));
+        cx = Math.max(r, Math.min(cW - r, cx));
+        cy = Math.max(r, Math.min(cH - r, cy));
       }
-      updateDOM();
+      updateSVG();
     }
-    function onUp(){ dragMode=null; wrap2.style.cursor='grab'; }
+
+    function onUp(){ dragMode = null; wrap2.style.cursor = 'grab'; }
 
     wrap2.addEventListener('mousedown', onDown);
-    wrap2.addEventListener('touchstart', onDown, {passive:false});
+    wrap2.addEventListener('touchstart', onDown, {passive: false});
     window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('touchmove', onMove, {passive: false});
     window.addEventListener('mouseup', onUp);
     window.addEventListener('touchend', onUp);
 
@@ -4215,8 +4257,7 @@ function npcOpenCropOverlay(src){
       var rPct = Math.round(r / minDim * 100);
       window._npcImgPos = px2 + '% ' + py2 + '%';
       window._npcImgR   = rPct;
-      var prev = document.getElementById('npcModalAvatarPrev');
-      if(prev) prev.style.objectPosition = window._npcImgPos;
+      _npcUpdateModalPreview();
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('mouseup', onUp);
