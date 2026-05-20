@@ -2351,12 +2351,13 @@ function initPlayerSession(id){
     }
     .pg-empty { color:rgba(200,185,155,.3); font-style:italic; font-size:13px; padding:6px 0; }
 
-    /* ── topbar modifica ── */
-    .pg-topbar { display:flex; justify-content:flex-end; padding:8px 0 4px; }
+    /* ── topbar modifica inline ── */
+    .pg-tabs { display:flex; align-items:center; flex-wrap:wrap; gap:0; position:relative; }
     .pg-edit-btn {
       font-family:'Cinzel',serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-      padding:7px 18px; border-radius:3px; cursor:pointer; transition:all .15s;
+      padding:7px 16px; border-radius:3px; cursor:pointer; transition:all .15s; margin-left:auto;
       background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.3); color:var(--goldh);
+      white-space:nowrap;
     }
     .pg-edit-btn:hover { background:rgba(201,168,76,.18); border-color:var(--goldd); }
     .pg-edit-btn.saving { background:rgba(80,160,80,.12); border-color:rgba(80,200,80,.4); color:#80d8a0; }
@@ -2721,15 +2722,16 @@ function pgRender(id){
       var extraItems = (pgData[id]&&pgData[id].inventario)?pgData[id].inventario:[];
       var magEquip = (pgData[id]&&pgData[id].magazzino)?pgData[id].magazzino.filter(function(c){ return c.equipped; }):[];
       var allItems = dmItems.concat(extraItems).concat(magEquip);
-      if(!allItems.length) return '<div class="pg-block pg-combat-block" style="width:100%"><div class="pg-block-title">Equipaggiamento</div><div class="pg-empty">Nessun oggetto equipaggiato.</div></div>';
+      if(!allItems.length) return '<div class="pg-block pg-combat-block" style="width:100%"><div class="pg-block-title">Equipaggiamento</div><div id="pg-scheda-equip"><div class="pg-empty">Nessun oggetto equipaggiato.</div></div></div>';
       return '<div class="pg-block pg-combat-block" style="width:100%"><div class="pg-block-title">Equipaggiamento</div>'
+        +'<div id="pg-scheda-equip">'
         +'<ul class="pg-equip-list">'
         +allItems.map(function(o){
           var nome = typeof o==='string'?o:(o.nome||String(o));
           var peso = typeof o==='object'&&o.peso ? ' <span style="opacity:.4;font-size:11px;">'+o.peso+' lb</span>' : '';
           return '<li class="pg-equip-item">'+escHtml(nome)+peso+'</li>';
         }).join('')
-        +'</ul></div>';
+        +'</ul></div></div>';
     })()
     +'</div>'
     // ── COLONNA DESTRA ──
@@ -2838,9 +2840,6 @@ function pgRender(id){
     +'<div class="pg-block-title">Magazzino</div>'
     +(magCards?'<div class="pg-mag-grid" id="pg-mag-grid">'+magCards+'</div>':'<div class="pg-empty" id="pg-mag-grid">Nessun oggetto nel magazzino. Aggiungine uno!</div>')
     +'<button class="pg-add-btn" style="margin-top:16px;" onclick="pgMagNew(\''+id+'\')">+ Aggiungi al Magazzino</button>'
-    +'</div>'
-    +'<div style="text-align:center;margin-top:6px;">'
-    +'<button class="gh-save-btn" data-action="save" style="padding:9px 28px;">&#9729; Salva<span class="gh-spin"></span></button>'
     +'</div>';
 
 
@@ -2882,19 +2881,19 @@ function pgRender(id){
     +(sc.obiettivi&&sc.obiettivi!=='—'?'<div class="pg-ro">'+escHtml(sc.obiettivi)+'</div>':'<div class="pg-empty">Non ancora definiti.</div>')
     +'<div class="pg-note-lbl">Le tue note personali</div>'
     +'<textarea class="pg-textarea" id="pg-ob-note" placeholder="Obiettivi, segreti, ambizioni, paure…" oninput="pgSaveNote(\''+id+'\',\'obNote\',this.value)">'+escHtml(obNote)+'</textarea></div>'
-    +'<div style="text-align:center;margin-top:4px;"><button class="pg-add-btn" data-action="save" style="padding:12px 32px;">&#8595; Salva File</button></div>';
+    ;
 
   // ── ASSEMBLE ──────────────────────────────────────
   document.getElementById('pg-content').innerHTML =
-    '<div class="pg-topbar">'
-    +'<button class="pg-edit-btn" id="pg-btn-modifica" onclick="pgToggleEdit(\''+id+'\')">✏ Modifica</button>'
-    +'</div>'
-    +'<div class="pg-tabs">'
+    '<div class="pg-tabs">'
     +['scheda','abilita','inventario','backstory','rissa'].map(function(t,i){
       var labels=['Scheda','Combattimento','Inventario','Backstory','🔒'];
-      var btn = '<button class="pg-tab'+(t===activeTab?' on':'')+'" onclick="pgSwitchTab(\''+id+'\',\''+t+'\')">'+labels[i]+'</button>';
-      return btn;
-    }).join('')+'</div>'
+      return '<button class="pg-tab'+(t===activeTab?' on':'')+'" onclick="pgSwitchTab(\''+id+'\',\''+t+'\')">'+labels[i]+'</button>';
+    }).join('')
+    // Bottone inline con i tab — varia per sezione
+    +'<button class="pg-edit-btn" id="pg-btn-modifica" onclick="pgToggleEdit(\''+id+'\')"'
+    +(activeTab==='rissa'||activeTab==='abilita'?' style="display:none;"':'')+'>✏ Modifica</button>'
+    +'</div>'
     +'<div class="pg-pane'+(activeTab==='scheda'?' on':'')+'" id="pg-pane-scheda">'+scheda_pane+'</div>'
     +'<div class="pg-pane'+(activeTab==='inventario'?' on':'')+'" id="pg-pane-inventario">'+inv_pane+'</div>'
     +'<div class="pg-pane'+(activeTab==='abilita'?' on':'')+'" id="pg-pane-abilita">'+abilita_pane+'</div>'
@@ -2905,11 +2904,25 @@ function pgRender(id){
 }
 
 function pgEnsure(id){
-  if(!pgData[id]) pgData[id]={
-    hpCur:CHARS[id].scheda.hpMax,
-    slotsUsed:{lv1:0,lv2:0,lv3:0,lv4:0,lv5:0},
-    risorse:{}, inventario:[], bgNote:'', obNote:''
-  };
+  if(!pgData[id]) pgData[id]={};
+  var sc = CHARS[id] ? CHARS[id].scheda : {};
+  var d  = pgData[id];
+  if(d.hpCur        === undefined) d.hpCur         = sc.hpMax         || '—';
+  if(!d.slotsUsed)                 d.slotsUsed      = {lv1:0,lv2:0,lv3:0,lv4:0,lv5:0};
+  if(!d.risorse)                   d.risorse        = {};
+  if(!d.inventario)                d.inventario     = [];
+  if(!d.magazzino)                 d.magazzino      = [];
+  if(d.bgNote        === undefined) d.bgNote        = '';
+  if(d.obNote        === undefined) d.obNote        = '';
+  // Campi editabili — inizializza dai dati base solo se non già modificati
+  if(!d.stats)          d.stats          = Object.assign({}, sc.stats         || {});
+  if(!d.tiriSalvezza)   d.tiriSalvezza   = Object.assign({}, sc.tiriSalvezza  || {});
+  if(!d.abilita)        d.abilita        = JSON.parse(JSON.stringify(sc.abilita || []));
+  if(!d.bonusCompetenza) d.bonusCompetenza = sc.bonusCompetenza || '+2';
+  if(!d.ca)             d.ca             = sc.ca             || '—';
+  if(!d.init)           d.init           = sc.init           || '—';
+  if(!d.velocita)       d.velocita       = sc.velocita       || '—';
+  if(!d.hpMax)          d.hpMax          = sc.hpMax          || '—';
 }
 
 function pgSwitchTab(id,tab){
@@ -2927,6 +2940,19 @@ function pgSwitchTab(id,tab){
   var allTabs=document.querySelectorAll('.pg-tab');
   if(allTabs[tabMap[tab]]) allTabs[tabMap[tab]].classList.add('on');
   var pane=document.getElementById('pg-pane-'+tab); if(pane) pane.classList.add('on');
+  // Gestione bottone modifica/salva
+  var btn=document.getElementById('pg-btn-modifica');
+  if(btn){
+    if(tab==='scheda'||tab==='abilita'){
+      btn.style.display=''; btn.textContent='✏ Modifica'; btn.classList.remove('saving');
+      _pgEditMode=false;
+    } else if(tab==='inventario'||tab==='backstory'){
+      btn.style.display=''; btn.textContent='☁ Salva'; btn.classList.add('saving');
+      _pgEditMode=false;
+    } else {
+      btn.style.display='none';
+    }
+  }
 }
 
 function pgSaveHp(id,val){
@@ -2987,6 +3013,23 @@ function pgAddInvExtra(id){
 
 function pgDelInvExtra(id,i){ pgEnsure(id); pgData[id].inventario.splice(i,1); pgRefreshInv(id); }
 
+function pgRefreshEquip(id){
+  var equip = document.getElementById('pg-scheda-equip'); if(!equip) return;
+  pgEnsure(id);
+  var sc = CHARS[id].scheda;
+  var dmItems  = pgData[id].dmInv      || sc.inventario.slice();
+  var extraItems = pgData[id].inventario || [];
+  var magEquip = (pgData[id].magazzino||[]).filter(function(c){ return c.equipped; });
+  var all = dmItems.concat(extraItems).concat(magEquip);
+  if(!all.length){ equip.innerHTML='<div class="pg-empty">Nessun oggetto equipaggiato.</div>'; return; }
+  equip.innerHTML='<ul class="pg-equip-list">'
+    +all.map(function(o){
+      var nome=typeof o==='string'?o:(o.nome||String(o));
+      var peso=typeof o==='object'&&o.peso?' <span style="opacity:.4;font-size:11px;">'+o.peso+' lb</span>':'';
+      return '<li class="pg-equip-item">'+escHtml(nome)+peso+'</li>';
+    }).join('')+'</ul>';
+}
+
 function pgRefreshInv(id){
   pgEnsure(id);
   var sc=CHARS[id].scheda;
@@ -3026,6 +3069,8 @@ function pgRefreshInv(id){
 
   // aggiorna magazzino (solo non equipaggiati)
   pgRefreshMagGrid(id);
+  // aggiorna equipaggiamento nella scheda (se visibile)
+  pgRefreshEquip(id);
 }
 
 function pgRefreshMagGrid(id){
@@ -4105,12 +4150,35 @@ async function ghPush(btn){
   var safety = setTimeout(function(){ if(btn){ btn.disabled=false; btn.classList.remove('saving'); } }, 12000);
 
   try{
-    if(document.getElementById('pg-hp-cur')){
-      pgEnsure(charId);
-      var hpEl=document.getElementById('pg-hp-cur'); if(hpEl) pgData[charId].hpCur=hpEl.value;
-      var bgEl=document.getElementById('pg-bg-note'); if(bgEl) pgData[charId].bgNote=bgEl.value;
-      var obEl=document.getElementById('pg-ob-note'); if(obEl) pgData[charId].obNote=obEl.value;
-    }
+    pgEnsure(charId);
+    var sc = CHARS[charId].scheda;
+
+    // HP e note dal DOM
+    var hpEl=document.getElementById('pg-hp-cur'); if(hpEl) pgData[charId].hpCur=hpEl.value;
+    var bgEl=document.getElementById('pg-bg-note'); if(bgEl) pgData[charId].bgNote=bgEl.value;
+    var obEl=document.getElementById('pg-ob-note'); if(obEl) pgData[charId].obNote=obEl.value;
+
+    // Stats dagli input in modalità modifica (se aperti)
+    var statKeys=['FOR','DES','COS','INT','SAG','CAR'];
+    statKeys.forEach(function(k){
+      var inp=document.getElementById('pg-inp-'+k);
+      if(inp && inp.style.display!=='none'){
+        if(!pgData[charId].stats) pgData[charId].stats={};
+        pgData[charId].stats[k]=parseInt(inp.value)||sc.stats[k];
+      }
+    });
+
+    // Vitals editabili
+    ['hpMax','ca','init','velocita'].forEach(function(field){
+      var el=document.querySelector('[data-field="'+field+'"]');
+      if(el){ pgData[charId][field]=el.value; }
+    });
+
+    // Assicura che tiriSalvezza e abilita siano inizializzati
+    if(!pgData[charId].tiriSalvezza) pgData[charId].tiriSalvezza=Object.assign({},sc.tiriSalvezza||{});
+    if(!pgData[charId].stats) pgData[charId].stats=Object.assign({},sc.stats||{});
+    if(!pgData[charId].abilita) pgData[charId].abilita=JSON.parse(JSON.stringify(sc.abilita||[]));
+    if(!pgData[charId].bonusCompetenza) pgData[charId].bonusCompetenza=sc.bonusCompetenza||'+2';
 
     var payload = {
       npc:         npcData[charId]     || [],
@@ -4371,34 +4439,59 @@ function pgToggleSkill(id, nomeskill){
 }
 
 function pgToggleEdit(id){
+  var activeTab = pgCurrentTab[id] || 'scheda';
+
+  // Se siamo in inventario — salva direttamente
+  if(activeTab === 'inventario' || activeTab === 'backstory'){
+    ghPush(document.getElementById('pg-btn-modifica'));
+    return;
+  }
+
   _pgEditMode = !_pgEditMode;
   var btn = document.getElementById('pg-btn-modifica');
   var pane = document.getElementById('pg-pane-scheda');
 
   if(_pgEditMode){
-    // Entra in modalità modifica
     if(btn){ btn.textContent='💾 Salva'; btn.classList.add('saving'); }
     if(pane) pane.classList.add('pg-edit-mode');
-    // Mostra input, nascondi valori
     document.querySelectorAll('.pg-stat-inp').forEach(function(inp){ inp.style.display='block'; });
     document.querySelectorAll('.pg-stat-score').forEach(function(el){ el.style.display='none'; });
     document.querySelectorAll('.pg-stat-mod').forEach(function(el){ el.style.display='none'; });
-    // Rendi editabili HP max, CA, init, velocita
     _pgMakeEditable(id, 'pg-vital-hpmax', 'hpMax');
     _pgMakeEditable(id, 'pg-vital-ca',    'ca');
     _pgMakeEditable(id, 'pg-vital-init',  'init');
     _pgMakeEditable(id, 'pg-vital-vel',   'velocita');
   } else {
-    // Salva e esci da modalità modifica
+    // Raccogli PRIMA tutti i valori dagli input
+    pgEnsure(id);
+    var statKeys=['FOR','DES','COS','INT','SAG','CAR'];
+    statKeys.forEach(function(k){
+      var inp=document.getElementById('pg-inp-'+k);
+      if(inp){
+        var val=parseInt(inp.value)||10;
+        pgData[id].stats[k]=val;
+        // Aggiorna anche CHARS per coerenza nel re-render
+        if(CHARS[id]&&CHARS[id].scheda&&CHARS[id].scheda.stats)
+          CHARS[id].scheda.stats[k]=val;
+      }
+    });
+    // Vitals
+    document.querySelectorAll('[data-field]').forEach(function(inp){
+      var field=inp.getAttribute('data-field');
+      if(field){ pgData[id][field]=inp.value; if(CHARS[id]&&CHARS[id].scheda) CHARS[id].scheda[field]=inp.value; }
+    });
+
     if(btn){ btn.textContent='✏ Modifica'; btn.classList.remove('saving'); }
     if(pane) pane.classList.remove('pg-edit-mode');
-    // Nascondi input, mostra valori aggiornati
     document.querySelectorAll('.pg-stat-inp').forEach(function(inp){ inp.style.display='none'; });
     document.querySelectorAll('.pg-stat-score').forEach(function(el){ el.style.display=''; });
     document.querySelectorAll('.pg-stat-mod').forEach(function(el){ el.style.display=''; });
-    // Salva su JSONBin
+    // Rimuovi vitals inputs dinamici
+    document.querySelectorAll('[data-field]').forEach(function(inp){ inp.remove(); });
+    document.querySelectorAll('[data-field-hidden]').forEach(function(el){ el.style.display=''; });
+
+    // Salva e re-render
     ghPush(null);
-    // Re-render scheda per aggiornare modificatori e TS
     pgRender(id);
   }
 }
